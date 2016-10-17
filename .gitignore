@@ -68,6 +68,7 @@ target/
 
 # IPython Notebook
 .ipynb_checkpoints
+<<<<<<< 99b78c680da09196c1e00bcca5403c8510702ce6
 
 # pyenv
 .python-version
@@ -87,3 +88,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+=======
+*.h5
+models
+*.swp
+*.p
+>>>>>>> working solutions
