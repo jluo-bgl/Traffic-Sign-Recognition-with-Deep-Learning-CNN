@@ -1,0 +1,124 @@
+import unittest
+from pandas import DataFrame
+import pandas as pd
+from .data_explorer import SignNames
+from .data_explorer import DataExplorer
+from .traffic_data import TrafficDataSets
+from tensorflow.python.framework import dtypes
+import pickle
+import os
+
+
+class TestSignNames(unittest.TestCase):
+
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
+        self.sign_names = SignNames("signnames.csv")
+        self.data_frame = self.sign_names.data_frame
+
+    def test_init(self):
+        data_frame = self.sign_names.data_frame
+        self.assertEqual(type(data_frame), DataFrame)
+        self.assertEqual(len(data_frame), 43, "There are should 43 signs")
+        self.assertTrue(data_frame.index.is_unique, "ClassId should unique")
+
+    def test_sign_name_by_id(self):
+        self.assertEqual(self.sign_names.sign_name_by_id(14), "Stop")
+
+
+class TestTrafficDataSets(unittest.TestCase):
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
+        self.training_file = "train.p"
+        self.testing_file = "test.p"
+        self.traffic_datasets = TrafficDataSets(self.training_file, self.testing_file,
+                                                dtype = dtypes.uint8, grayscale = False, one_hot_encode = False)
+
+    def test_init(self):
+        self.assertTrue(self.traffic_datasets.test is not None)
+        self.assertTrue(self.traffic_datasets.validation is not None)
+        self.assertTrue(self.traffic_datasets.train is not None)
+        self.assertEqual(self.traffic_datasets.NUMBER_OF_CLASSES, 43, "we have 43 kind of traffic signs")
+        self.assertEqual(self.traffic_datasets.train.num_examples, 27446, "70% of training data")
+        self.assertEqual(self.traffic_datasets.validation.num_examples, 11763, "30% of validation data")
+        self.assertEqual(self.traffic_datasets.test.num_examples, 12630, "30% of test data")
+
+    def test_gray_scale_should_contains_one_chanel(self):
+        traffic_datasets = TrafficDataSets(self.training_file, self.testing_file, dtype=dtypes.uint8, grayscale=True)
+        self.assertEqual(traffic_datasets.test.images.shape[3], 1)
+        self.assertTrue(traffic_datasets.test.is_grayscale)
+
+    def test_train_validation_split_follows_distribution(self):
+        sign_names = SignNames("signnames.csv")
+        datasets = self.traffic_datasets
+        distribution = DataExplorer._data_distribution(datasets.validation.labels, sign_names)
+        self.assertEqual(len(distribution), TrafficDataSets.NUMBER_OF_CLASSES, "all samples should exists in validation set")
+        print(distribution)
+
+
+class TestDataExplorer(unittest.TestCase):
+
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
+        training_file = "train.p"
+        testing_file = "test.p"
+        with open(training_file, mode='rb') as f:
+            train = pickle.load(f)
+
+        with open(testing_file, mode='rb') as f:
+            test = pickle.load(f)
+
+        if not os.path.exists("./explorer"):
+            os.makedirs("./explorer")
+
+        self.X_train = train['features']
+        self.y_train = train['labels']
+        self.X_test = test['features']
+        self.y_test = test['labels']
+        self.sign_names = SignNames("signnames.csv")
+
+        self.traffic_datasets = TrafficDataSets(training_file, testing_file,
+                                                dtype=dtypes.uint8, grayscale=False, one_hot_encode=False)
+        datasets = self.traffic_datasets
+        self.explorer = DataExplorer(self.sign_names, datasets.train.images, datasets.train.labels,
+                                datasets.validation.images, datasets.validation.labels,
+                                datasets.test.images, datasets.test.labels)
+
+    def test_init(self):
+        self.assertEqual(len(self.explorer.Test_Features), 12630, "Pictures of Test Features should be 12,630")
+        self.assertTupleEqual(self.explorer.Test_Features.shape, (12630, 32, 32, 3))
+        self.assertEqual(len(self.X_train), 39209, "Pictures of Test Features should be 39209")
+        self.assertTupleEqual(self.explorer.Train_Features.shape, (39209, 32, 32, 3))
+        self.assertTupleEqual(self.explorer.train_labels.shape, (39209, ))
+        self.assertTupleEqual(self.explorer.test_labels.shape, (12630, ))
+
+    def test_sample(self):
+        plt = DataExplorer._sample(self.X_train, self.y_train, slice(1, 3), self.sign_names)
+        plt.savefig('./explorer/test_sample.png')
+        # TODO How to check the titles?
+        self.assertTupleEqual(tuple(plt.gca().figure.bbox.size), (240., 320.))
+        self.assertTrue(plt is not None)
+
+    def test_sample_training_data(self):
+        self.explorer.sample_training_data(slice(10000, 10010)).savefig("./explorer/training_sample_end_of_speed.png")
+        self.explorer.sample_training_data(slice(20000, 20010)).savefig("./explorer/training_sample_priority_road.png")
+
+    def test_sample_testing_data(self):
+        # During the data understanding part, obersaved that below line produced wrong picture(data)?
+        # for i in range(1000)
+        self.explorer.sample_testing_data(slice(1000, 1040)).savefig("./explorer/testing_sample_end_of_speed.png")
+        # ValueError: left cannot be >= right
+        # self.explorer.sample_testing_data(slice(1040, 1080)).savefig("./explorer/testing_sample_1.png")
+        # self.explorer.sample_testing_data(slice(2000, 2010)).savefig("./explorer/testing_sample_priority_road.png")
+
+    def test_data_distribution(self):
+        distribution = self.explorer._data_distribution(self.y_test, self.sign_names)
+        self.assertEqual(len(distribution), 43)
+
+    def test_training_data_distribution(self):
+        self.explorer.bar_chart_data_distribution(self.explorer.training_data_distribution(), "Training Data Distribution")\
+            .savefig("./explorer/training_data_distribution.png")
+
+    def test_testing_data_distribution(self):
+        self.explorer.bar_chart_data_distribution(self.explorer.testing_data_distribution(), "Testing Data Distribution")\
+            .savefig("./explorer/testing_data_distribution.png")
