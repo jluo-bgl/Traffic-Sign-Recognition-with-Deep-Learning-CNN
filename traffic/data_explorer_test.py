@@ -4,6 +4,7 @@ import pandas as pd
 from .data_explorer import SignNames
 from .data_explorer import DataExplorer
 from .traffic_data import TrafficDataSets
+from .data_explorer import ConfusionMatrix
 from tensorflow.python.framework import dtypes
 import pickle
 import os
@@ -122,3 +123,17 @@ class TestDataExplorer(unittest.TestCase):
     def test_testing_data_distribution(self):
         self.explorer.bar_chart_data_distribution(self.explorer.testing_data_distribution(), "Testing Data Distribution")\
             .savefig("./explorer/testing_data_distribution.png")
+
+
+class TestConfusionMatrix(unittest.TestCase):
+    def test_plot_confusion_matrix_text(self):
+        y_true = ["cat", "ant", "cat", "cat", "ant", "bird"]
+        y_pred = ["ant", "ant", "cat", "cat", "ant", "cat"]
+        plt = ConfusionMatrix().plot_confusion_matrix(y_true, y_pred, labels=["ant", "bird", "cat"])
+        plt.savefig('./explorer/confusion_matrix_test_plot_confusion_matrix_text.png')
+
+    def test_plot_confusion_matrix_float(self):
+        y_true = [2, 0, 2, 2, 0, 1]
+        y_pred = [0, 0, 2, 2, 0, 2]
+        plt = ConfusionMatrix().plot_confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
+        plt.savefig('./explorer/confusion_matrix_test_plot_confusion_matrix_float.png')
