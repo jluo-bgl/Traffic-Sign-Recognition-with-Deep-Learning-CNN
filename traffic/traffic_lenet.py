@@ -65,14 +65,14 @@ class Lenet(object):
         # Flatten
         fc1 = flatten(conv2)
         # (5 * 5 * 16, 120)
-        fc1_shape = (fc1.get_shape().as_list()[-1], 120)
+        fc1_shape = (fc1.get_shape().as_list()[-1], 512)
 
         fc1_W = tf.Variable(tf.truncated_normal(shape=(fc1_shape)))
-        fc1_b = tf.Variable(tf.zeros(120))
+        fc1_b = tf.Variable(tf.zeros(512))
         fc1 = tf.matmul(fc1, fc1_W) + fc1_b
         fc1 = tf.nn.relu(fc1)
 
-        fc2_W = tf.Variable(tf.truncated_normal(shape=(120, self.LABEL_SIZE)))
+        fc2_W = tf.Variable(tf.truncated_normal(shape=(512, self.LABEL_SIZE)))
         fc2_b = tf.Variable(tf.zeros(self.LABEL_SIZE))
         return tf.matmul(fc1, fc2_W) + fc2_b
 

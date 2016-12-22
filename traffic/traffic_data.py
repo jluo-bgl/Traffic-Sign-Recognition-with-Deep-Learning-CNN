@@ -58,10 +58,16 @@ class DataSet(object):
 
         if dtype == dtypes.float32:
             # Convert from [0, 255] -> [0.0, 1.0].
-            images = images - 127
-            images = images.astype(numpy.float32)
-            images = numpy.multiply(images, 1.0 / 255.0)
-            # images = tf.image.convert_image_dtype(images, tf.float32)
+            # images = images - 127
+            # images = images.astype(numpy.float32)
+            # images = numpy.multiply(images, 1.0 / 255.0)
+            # images = tf.image.per_image_whitening(images)
+            images = tf.image.convert_image_dtype(images, tf.float32)
+            images = tf.Session().run(images)
+            # image_tensor = tf.convert_to_tensor(images)
+            # with tf.Session():
+            #     image_tensor_whitened = tf.image.per_image_whitening(image_tensor)
+            #     images = image_tensor_whitened.eval()
 
         if grayscale and dtype == dtypes.uint8:
             raise TypeError('grayscale have to setup dtype as float32')
