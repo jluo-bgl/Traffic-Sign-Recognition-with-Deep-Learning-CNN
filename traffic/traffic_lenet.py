@@ -2,14 +2,18 @@ import unittest
 import tensorflow as tf
 from tensorflow.contrib.layers import flatten
 from .traffic_data import TrafficDataSets
+from .data_explorer import TrainingPlotter
 import logging.config
 logging.config.fileConfig('logging.conf')
 
 class Lenet(object):
 
     def __init__(self):
-        self.EPOCHS = 10
-        self.BATCH_SIZE = 50
+        self.plotter = TrainingPlotter("Lenet Epoch_10 Batch_Size_50",
+                                       './model_comparison/Lenet_Epoch_10_Batch_Size_50_{}.png'.format(TrainingPlotter.now_as_str()),
+                                       show_plot_window=False)
+        self.EPOCHS = 100
+        self.BATCH_SIZE = 500
         self.LABEL_SIZE = TrafficDataSets.NUMBER_OF_CLASSES
 
         self.traffic_datas = TrafficDataSets('train.p', 'test.p')
@@ -104,16 +108,20 @@ class Lenet(object):
                 for step in range(steps_per_epoch):
                     batch_x, batch_y = self.traffic_datas.train.next_batch(self.BATCH_SIZE)
                     loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y})
+                    self.plotter.add_loss_accuracy_to_plot(i, loss, None, None, None, redraw=False)
 
                 val_loss, val_acc = self.eval_data(self.traffic_datas.validation)
                 logging.info("EPOCH {} ...".format(i + 1))
                 logging.info("Validation loss = {:.3f}".format(val_loss))
                 logging.info("Validation accuracy = {:.3f}".format(val_acc))
+                self.plotter.add_loss_accuracy_to_plot(i, loss, None, val_loss, val_acc, redraw=True)
 
             # Evaluate on the test data
             test_loss, test_acc = self.eval_data(self.traffic_datas.test)
             logging.info("Test loss = {:.3f}".format(test_loss))
             logging.info("Test accuracy = {:.3f}".format(test_acc))
+
+        self.plotter.safe_shut_down()
 
 
 class TestLenet(unittest.TestCase):

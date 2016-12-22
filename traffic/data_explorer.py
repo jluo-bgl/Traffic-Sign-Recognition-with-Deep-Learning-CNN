@@ -3,6 +3,7 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from .laplotter import LossAccPlotter
+from datetime import datetime
 
 # plt.style.use('fivethirtyeight')
 
@@ -119,6 +120,10 @@ class TrainingPlotter(object):
 
     def safe_shut_down(self):
         self.plotter.block()
+
+    @staticmethod
+    def now_as_str():
+        return "{:%Y_%m_%d_%H_%M}".format(datetime.now())
 
     @staticmethod
     def plot_confusion_matrix(y_true, y_pred, labels):
