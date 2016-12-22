@@ -4,7 +4,7 @@ import pandas as pd
 from .data_explorer import SignNames
 from .data_explorer import DataExplorer
 from .traffic_data import TrafficDataSets
-from .data_explorer import ConfusionMatrix
+from .data_explorer import TrainingPlotter
 from tensorflow.python.framework import dtypes
 import pickle
 import os
@@ -125,15 +125,27 @@ class TestDataExplorer(unittest.TestCase):
             .savefig("./explorer/testing_data_distribution.png")
 
 
-class TestConfusionMatrix(unittest.TestCase):
+class TestTrainingPlotter(unittest.TestCase):
     def test_plot_confusion_matrix_text(self):
         y_true = ["cat", "ant", "cat", "cat", "ant", "bird"]
         y_pred = ["ant", "ant", "cat", "cat", "ant", "cat"]
-        plt = ConfusionMatrix().plot_confusion_matrix(y_true, y_pred, labels=["ant", "bird", "cat"])
+        plt = TrainingPlotter.plot_confusion_matrix(y_true, y_pred, labels=["ant", "bird", "cat"])
         plt.savefig('./explorer/confusion_matrix_test_plot_confusion_matrix_text.png')
 
     def test_plot_confusion_matrix_float(self):
         y_true = [2, 0, 2, 2, 0, 1]
         y_pred = [0, 0, 2, 2, 0, 2]
-        plt = ConfusionMatrix().plot_confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
+        plt = TrainingPlotter.plot_confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
         plt.savefig('./explorer/confusion_matrix_test_plot_confusion_matrix_float.png')
+
+    def test_loss_acc_plot(self):
+        plotter = TrainingPlotter("the title", './explorer/test_loss_acc_plot.png', show_plot_window=False)
+        for epoch in range(50):
+            loss_train, acc_train = 100 - epoch, epoch
+            if epoch % 10 == 0:
+                loss_val, acc_val = 100 - epoch - 3, epoch - 5
+            else:
+                loss_val, acc_val = None, None
+            plotter.add_loss_accuracy_to_plot(epoch, loss_train, acc_train, loss_val, acc_val, redraw=True)
+
+        plotter.safe_shut_down()

@@ -2,6 +2,7 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
+from .laplotter import LossAccPlotter
 
 # plt.style.use('fivethirtyeight')
 
@@ -101,7 +102,23 @@ class DataExplorer(object):
         return plt
 
 
-class ConfusionMatrix(object):
+class TrainingPlotter(object):
+    def __init__(self, title, file_name, show_plot_window=False):
+        self.plotter = LossAccPlotter(title=title,
+                                      save_to_filepath=file_name,
+                                      show_regressions=True,
+                                      show_averages=True,
+                                      show_loss_plot=True,
+                                      show_acc_plot=True,
+                                      show_plot_window=show_plot_window,
+                                      x_label="Epoch")
+
+    def add_loss_accuracy_to_plot(self, epoch, loss_train, acc_train, loss_val, acc_val, redraw=True):
+        self.plotter.add_values(epoch, loss_train=loss_train, acc_train=acc_train, loss_val=loss_val, acc_val=acc_val,
+                                redraw=redraw)
+
+    def safe_shut_down(self):
+        self.plotter.block()
 
     @staticmethod
     def plot_confusion_matrix(y_true, y_pred, labels):
@@ -114,7 +131,7 @@ class ConfusionMatrix(object):
         plt.figure(figsize=(10, 8), dpi=120)
         ind_array = np.arange(len(labels))
         x, y = np.meshgrid(ind_array, ind_array)
-        intFlag = 0  # 标记在图片中对文字是整数型还是浮点型
+        intFlag = 0
         for x_val, y_val in zip(x.flatten(), y.flatten()):
             if (intFlag):
                 c = cm[y_val][x_val]
