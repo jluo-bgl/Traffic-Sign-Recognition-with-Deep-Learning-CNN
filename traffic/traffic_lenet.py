@@ -18,9 +18,10 @@ class Lenet(object):
 
         self.traffic_datas = traffic_dataset
 
-        # MNIST consists of 28x28x1, grayscale images
-        self.x = tf.placeholder(tf.float32, (None, 32, 32, 3))
-        # Classify over 10 digits 0-9
+        # consists of 32x32xcolor_channel
+        color_channel = traffic_dataset.train.images.shape[3]
+        self.x = tf.placeholder(tf.float32, (None, 32, 32, color_channel))
+
         self.y = tf.placeholder(tf.float32, (None, self.LABEL_SIZE))
         self.fc2 = Lenet._LeNet(self, self.x)
 
