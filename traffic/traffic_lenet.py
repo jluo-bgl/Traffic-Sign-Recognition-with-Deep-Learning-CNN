@@ -8,15 +8,15 @@ logging.config.fileConfig('logging.conf')
 
 class Lenet(object):
 
-    def __init__(self):
+    def __init__(self, traffic_dataset):
         self.plotter = TrainingPlotter("Lenet Epoch_10 Batch_Size_50",
-                                       './model_comparison/Lenet_Epoch_10_Batch_Size_50_{}.png'.format(TrainingPlotter.now_as_str()),
+                                       './model_comparison/Lenet_Epoch_100_Batch_Size_500_ZeroMean_{}.png'.format(TrainingPlotter.now_as_str()),
                                        show_plot_window=False)
         self.EPOCHS = 100
         self.BATCH_SIZE = 500
         self.LABEL_SIZE = TrafficDataSets.NUMBER_OF_CLASSES
 
-        self.traffic_datas = TrafficDataSets('train.p', 'test.p')
+        self.traffic_datas = traffic_dataset
 
         # MNIST consists of 28x28x1, grayscale images
         self.x = tf.placeholder(tf.float32, (None, 32, 32, 3))

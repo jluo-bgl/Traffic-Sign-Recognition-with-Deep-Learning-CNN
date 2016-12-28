@@ -27,36 +27,6 @@ class TestSignNames(unittest.TestCase):
         self.assertEqual(self.sign_names.sign_name_by_id(14), "Stop")
 
 
-class TestTrafficDataSets(unittest.TestCase):
-    def __init__(self, methodName='runTest'):
-        super().__init__(methodName)
-        self.training_file = "train.p"
-        self.testing_file = "test.p"
-        self.traffic_datasets = TrafficDataSets(self.training_file, self.testing_file,
-                                                dtype = dtypes.uint8, grayscale = False, one_hot_encode = False)
-
-    def test_init(self):
-        self.assertTrue(self.traffic_datasets.test is not None)
-        self.assertTrue(self.traffic_datasets.validation is not None)
-        self.assertTrue(self.traffic_datasets.train is not None)
-        self.assertEqual(self.traffic_datasets.NUMBER_OF_CLASSES, 43, "we have 43 kind of traffic signs")
-        self.assertEqual(self.traffic_datasets.train.num_examples, 27446, "70% of training data")
-        self.assertEqual(self.traffic_datasets.validation.num_examples, 11763, "30% of validation data")
-        self.assertEqual(self.traffic_datasets.test.num_examples, 12630, "30% of test data")
-
-    def test_gray_scale_should_contains_one_chanel(self):
-        traffic_datasets = TrafficDataSets(self.training_file, self.testing_file, dtype=dtypes.uint8, grayscale=True)
-        self.assertEqual(traffic_datasets.test.images.shape[3], 1)
-        self.assertTrue(traffic_datasets.test.is_grayscale)
-
-    def test_train_validation_split_follows_distribution(self):
-        sign_names = SignNames("signnames.csv")
-        datasets = self.traffic_datasets
-        distribution = DataExplorer._data_distribution(datasets.validation.labels, sign_names)
-        self.assertEqual(len(distribution), TrafficDataSets.NUMBER_OF_CLASSES, "all samples should exists in validation set")
-        print(distribution)
-
-
 class TestDataExplorer(unittest.TestCase):
 
     def __init__(self, methodName='runTest'):
@@ -101,6 +71,7 @@ class TestDataExplorer(unittest.TestCase):
         self.assertTrue(plt is not None)
 
     def test_sample_training_data(self):
+        self.explorer.sample_training_data(slice(0, 10)).savefig("./explorer/training_sample_1_10.png")
         self.explorer.sample_training_data(slice(10000, 10010)).savefig("./explorer/training_sample_end_of_speed.png")
         self.explorer.sample_training_data(slice(20000, 20010)).savefig("./explorer/training_sample_priority_road.png")
 
