@@ -5,27 +5,54 @@ from sklearn.cross_validation import train_test_split
 import tensorflow as tf
 
 
-class TrafficDataSets(object):
-    NUMBER_OF_CLASSES = 43
+class TrafficDataProvider(object):
+    def __init__(self, X_train_array, y_train_array, X_test_array, y_test_array, split_validation_from_train=False):
 
-    def __init__(self, training_file, testing_file, dtype = dtypes.float32, grayscale = False, one_hot_encode = True):
+
+        X_train, X_validation, y_train, y_validation = None, None, None, None
+        if split_validation_from_train:
+            X_train, X_validation, y_train, y_validation = train_test_split(X_train_array, y_train_array,
+                                                                            test_size=0.30, random_state=42)
+        else:
+            X_train, y_train = X_train_array, y_train_array
+
+        X_test, y_test = X_test_array, y_test_array
+
+        self.X_train = X_train
+        self.X_validation = X_validation
+        self.y_train = y_train
+        self.y_validation = y_validation
+        self.X_test = X_test
+        self.y_test = y_test
+
+
+class TrafficDataRealFileProvider(TrafficDataProvider):
+    def __init__(self, split_validation_from_train=True):
+        training_file = "train.p"
+        testing_file = "test.p"
         with open(training_file, mode='rb') as f:
             train = pickle.load(f)
         with open(testing_file, mode='rb') as f:
             test = pickle.load(f)
 
-        X_train, X_validation, y_train, y_validation = train_test_split(train['features'], train['labels'],
-                                                            test_size=0.30, random_state=42)
-        X_test, y_test = test['features'], test['labels']
+        super().__init__(train['features'], train['labels'], test['features'], test['labels'],
+                         split_validation_from_train)
 
+
+class TrafficDataSets(object):
+    NUMBER_OF_CLASSES = 43
+
+    def __init__(self, data_provider, dtype = dtypes.float32, grayscale = False, one_hot_encode = True,
+                 dataset_factory=lambda X, y, dtype, grayscale: DataSet(X, y, dtype, grayscale)):
+        y_train, y_validation, y_test = data_provider.y_train, data_provider.y_validation, data_provider.y_test
         if one_hot_encode:
-            y_train, y_validation, y_test = dense_to_one_hot(y_train, TrafficDataSets.NUMBER_OF_CLASSES), \
-                                            dense_to_one_hot(y_validation, TrafficDataSets.NUMBER_OF_CLASSES), \
-                                            dense_to_one_hot(y_test, TrafficDataSets.NUMBER_OF_CLASSES)
+            y_train, y_validation, y_test = dense_to_one_hot(data_provider.y_train, TrafficDataSets.NUMBER_OF_CLASSES), \
+                                            dense_to_one_hot(data_provider.y_validation, TrafficDataSets.NUMBER_OF_CLASSES), \
+                                            dense_to_one_hot(data_provider.y_test, TrafficDataSets.NUMBER_OF_CLASSES)
 
-        self.train = DataSet(X_train, y_train, dtype, grayscale)
-        self.validation = DataSet(X_validation, y_validation, dtype, grayscale)
-        self.test = DataSet(X_test, y_test, dtype, grayscale)
+        self.train = dataset_factory(data_provider.X_train, y_train, dtype, grayscale)
+        self.validation = dataset_factory(data_provider.X_validation, y_validation, dtype, grayscale)
+        self.test = dataset_factory(data_provider.X_test, y_test, dtype, grayscale)
 
 
 def dense_to_one_hot(labels_dense, num_classes):
@@ -102,7 +129,7 @@ class DataSet(object):
     def is_grayscale(self):
         return self._images.shape[3] == 1
 
-    def next_batch(self, batch_size, fake_data=False):
+    def next_batch(self, batch_size):
         """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
@@ -120,3 +147,35 @@ class DataSet(object):
             assert batch_size <= self._num_examples
         end = self._index_in_epoch
         return self._images[start:end], self._labels[start:end]
+
+
+class DataSetWithGenerator(DataSet):
+    def __init__(self,
+                 images,
+                 labels,
+                 dtype=dtypes.float32,
+                 grayscale=False):
+        super().__init__(images, labels, dtype, grayscale)
+        self.datagen = DataSetWithGenerator._data_generator_factory()
+
+    @staticmethod
+    def _data_generator_factory():
+        from keras.preprocessing.image import ImageDataGenerator
+        datagen = ImageDataGenerator(
+            rotation_range=20,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            rescale=1. / 255,
+            shear_range=0.2,
+            zoom_range=0.2,
+            horizontal_flip=False,
+            vertical_flip=False,
+            fill_mode='nearest',
+            dim_ordering='tf')
+        return datagen
+
+    def next_batch(self, batch_size, save_to_dir=None, save_prefix=None):
+        return self.datagen.flow(self._images, self._labels, batch_size=batch_size,
+                                 shuffle=True,
+                                 save_to_dir= save_to_dir,  save_prefix=save_prefix, save_format='jpeg')
+
