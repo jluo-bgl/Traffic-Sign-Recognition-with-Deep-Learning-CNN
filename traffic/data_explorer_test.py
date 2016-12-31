@@ -8,7 +8,7 @@ from .data_explorer import TrainingPlotter
 from tensorflow.python.framework import dtypes
 import pickle
 import os
-
+from .traffic_test_data_provider import real_data_provider_no_shuffer
 
 class TestSignNames(unittest.TestCase):
 
@@ -48,7 +48,7 @@ class TestDataExplorer(unittest.TestCase):
         self.y_test = test['labels']
         self.sign_names = SignNames("signnames.csv")
 
-        self.traffic_datasets = TrafficDataSets(training_file, testing_file,
+        self.traffic_datasets = TrafficDataSets(real_data_provider_no_shuffer,
                                                 dtype=dtypes.uint8, grayscale=False, one_hot_encode=False)
         datasets = self.traffic_datasets
         self.explorer = DataExplorer(self.sign_names, datasets.train.images, datasets.train.labels,
@@ -94,6 +94,16 @@ class TestDataExplorer(unittest.TestCase):
     def test_testing_data_distribution(self):
         self.explorer.bar_chart_data_distribution(self.explorer.testing_data_distribution(), "Testing Data Distribution")\
             .savefig("./explorer/testing_data_distribution.png")
+
+    def test_highest_sign_names_count(self):
+        distribution = self.explorer.training_data_distribution()
+        highest = self.explorer.highest_sign_names_count(distribution)
+        self.assertTupleEqual(highest, ('Speed limit (50km/h)', 2250))
+
+    def test_lowest_sign_names_count(self):
+        distribution = self.explorer.training_data_distribution()
+        highest = self.explorer.lowest_sign_names_count(distribution)
+        self.assertTupleEqual(highest, ('Dangerous curve to the left', 210))
 
 
 class TestTrainingPlotter(unittest.TestCase):

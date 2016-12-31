@@ -7,10 +7,12 @@ from .traffic_data import TrafficDataSets
 from .traffic_data import TrafficDataProvider
 from .traffic_data import TrafficDataRealFileProvider
 from .traffic_data import DataSetWithGenerator
+from .traffic_data import TrafficDataEnhancement
 from .data_explorer import TrainingPlotter
 from tensorflow.python.framework import dtypes
 import pickle
 import os
+import numpy as np
 
 real_data_provider = TrafficDataRealFileProvider(split_validation_from_train=True)
 real_data_provider_no_shuffer = TrafficDataRealFileProvider(split_validation_from_train=False)
@@ -64,7 +66,7 @@ class TestTrafficDataSet(unittest.TestCase):
 
     def test_data_generator_factory(self):
         test_image_folder = get_and_make_sure_folder_exists("./test_data_generator_factory")
-        datagen = DataSetWithGenerator._data_generator_factory()
+        datagen = DataSetWithGenerator._training_data_generator_factory()
         x = clear_subset_data_provider.X_train
         y = clear_subset_data_provider.y_train
         DataExplorer._sample(x, y, slice(0, len(y)), SignNames("signnames.csv")).savefig(test_image_folder + "/original.png")
@@ -75,16 +77,42 @@ class TestTrafficDataSet(unittest.TestCase):
             if i > 20:
                 break  # otherwise the generator would loop indefinitely
 
-    def test_next_batch(self):
+    def test_next_batch_should_return_X_y_also_save_files_into_folder(self):
         test_image_folder = get_and_make_sure_folder_exists("./test_next_batch_with_generator")
         x = clear_subset_data_provider.X_train
         y = clear_subset_data_provider.y_train
         DataExplorer._sample(x, y, slice(0, len(y)), SignNames("signnames.csv")).savefig(
             test_image_folder + "/original.png")
-        dataset = DataSetWithGenerator(x, y, dtype=dtypes.uint8, grayscale=False)
-        i = 0
-        for batch in dataset.next_batch(batch_size=5, save_to_dir=test_image_folder, save_prefix='test_next_batch_generator'):
-            i += 1
-            if i > 20:
-                break
+        dataset = DataSetWithGenerator(x, y, dtype=dtypes.uint8, grayscale=False,
+                                       batch_size=5, save_to_dir=test_image_folder,
+                                       save_prefix='test_next_batch_generator')
+        for i in range(20):
+            batch = dataset.next_batch()
+            self.assertEqual(type(batch), tuple)
+            self.assertEqual(len(batch), 2)
 
+
+class TestTrafficDataEnhancement(unittest.TestCase):
+    def test_enhance(self):
+        features = real_data_provider_no_shuffer.X_train
+        lables = real_data_provider_no_shuffer.y_train
+        self.assertTrue(len(features) < 40000, "original data has less then 40K features")
+
+        features, labels = TrafficDataEnhancement.enhance(real_data_provider_no_shuffer.X_train,
+                                                          real_data_provider_no_shuffer.y_train)
+        self.assertTrue(len(features) > 70000, "enhanced data has more than 70K features")
+
+    def test_random_resize(self):
+        original = clear_subset_data_provider.X_train[0]
+        label = clear_subset_data_provider.y_train[0]
+        all_images = []
+        all_labels = []
+        all_images.append(original)
+        all_labels.append(label)
+        for index in range(0, 10):
+            all_images.append(TrafficDataEnhancement.resize_image_randomly(original))
+            all_labels.append(label)
+
+        plt = DataExplorer._sample(all_images, all_labels, slice(0, 11), SignNames("signnames.csv"))
+        test_image_folder = get_and_make_sure_folder_exists("./test_data_enhancement")
+        plt.savefig(test_image_folder + "/random_resize.png")
