@@ -8,9 +8,9 @@ logging.config.fileConfig('logging.conf')
 
 class Lenet(object):
 
-    def __init__(self, traffic_dataset):
-        self.plotter = TrainingPlotter("Lenet Epoch_10 Batch_Size_50",
-                                       './model_comparison/Lenet_Epoch_100_Batch_Size_500_ZeroMean_{}.png'.format(TrainingPlotter.now_as_str()),
+    def __init__(self, traffic_dataset, name):
+        self.plotter = TrainingPlotter("Lenet " + name,
+                                       './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str()),
                                        show_plot_window=False)
         self.EPOCHS = 100
         self.BATCH_SIZE = 500
@@ -23,7 +23,7 @@ class Lenet(object):
         self.x = tf.placeholder(tf.float32, (None, 32, 32, color_channel))
 
         self.y = tf.placeholder(tf.float32, (None, self.LABEL_SIZE))
-        self.fc2 = Lenet._LeNet(self, self.x)
+        self.fc2 = Lenet._LeNet(self, self.x, color_channel)
 
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.fc2, self.y))
         self.opt = tf.train.AdamOptimizer()
@@ -34,17 +34,17 @@ class Lenet(object):
     # LeNet architecture:
     # INPUT -> CONV -> ACT -> POOL -> CONV -> ACT -> POOL -> FLATTEN -> FC -> ACT -> FC
     # create the LeNet and return the result of the last fully connected layer.
-    def _LeNet(self, x):
+    def _LeNet(self, x, color_channel):
         # x is 32, 32, 3
         # Reshape from 2D to 4D. This prepares the data for
         # convolutional and pooling layers.
-        x = tf.reshape(x, (-1, 32, 32, 3))
+        # x = tf.reshape(x, (-1, 32, 32, 3))
         # Pad 0s to 32x32. Centers the digit further.
         # Add 2 rows/columns on each side for height and width dimensions.
         # x = tf.pad(x, [[0, 0], [2, 2], [2, 2], [0, 0]], mode="CONSTANT")
 
         # 28x28x6
-        conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 3, 6)))
+        conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, color_channel, 6)))
         conv1_b = tf.Variable(tf.zeros(6))
         conv1 = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID') + conv1_b
 
@@ -90,10 +90,11 @@ class Lenet(object):
         # So in that case we go over 54976 examples instead of 55000.
         steps_per_epoch = dataset.num_examples // self.BATCH_SIZE
         num_examples = steps_per_epoch * self.BATCH_SIZE
+        dataset.reset
         total_acc, total_loss = 0, 0
         sess = tf.get_default_session()
         for step in range(steps_per_epoch):
-            batch_x, batch_y = dataset.next_batch(self.BATCH_SIZE)
+            batch_x, batch_y = dataset.next_batch()
             loss, acc = sess.run([self.loss_op, self.accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y})
             total_acc += (acc * batch_x.shape[0])
             total_loss += (loss * batch_x.shape[0])
@@ -106,61 +107,18 @@ class Lenet(object):
 
             # Train model
             for i in range(self.EPOCHS):
+                self.traffic_datas.train.reset
                 for step in range(steps_per_epoch):
-                    batch_x, batch_y = self.traffic_datas.train.next_batch(self.BATCH_SIZE)
+                    batch_x, batch_y = self.traffic_datas.train.next_batch()
                     loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y})
                     self.plotter.add_loss_accuracy_to_plot(i, loss, None, None, None, redraw=False)
 
                 val_loss, val_acc = self.eval_data(self.traffic_datas.validation)
-                logging.info("EPOCH {} ...".format(i + 1))
-                logging.info("Validation loss = {:.3f}".format(val_loss))
-                logging.info("Validation accuracy = {:.3f}".format(val_acc))
+                logging.info("EPOCH {} Validation loss = {:.3f} accuracy = {:.3f}".format(i + 1, val_loss, val_acc))
                 self.plotter.add_loss_accuracy_to_plot(i, loss, None, val_loss, val_acc, redraw=True)
 
             # Evaluate on the test data
             test_loss, test_acc = self.eval_data(self.traffic_datas.test)
-            logging.info("Test loss = {:.3f}".format(test_loss))
-            logging.info("Test accuracy = {:.3f}".format(test_acc))
+            logging.info("Test loss = {:.3f} accuracy = {:.3f}".format(test_loss, test_acc))
 
         self.plotter.safe_shut_down()
-
-
-class TestLenet(unittest.TestCase):
-    def test_lenet(self):
-        Lenet().train()
-
-
-"""
-2016-12-22 10:09:20,270 - EPOCH 1 ...
-2016-12-22 10:09:20,270 - Validation loss = 8.590
-2016-12-22 10:09:20,270 - Validation accuracy = 0.032
-2016-12-22 10:10:01,254 - EPOCH 2 ...
-2016-12-22 10:10:01,254 - Validation loss = 4.388
-2016-12-22 10:10:01,254 - Validation accuracy = 0.054
-2016-12-22 10:10:38,479 - EPOCH 3 ...
-2016-12-22 10:10:38,479 - Validation loss = 3.895
-2016-12-22 10:10:38,480 - Validation accuracy = 0.055
-2016-12-22 10:11:16,763 - EPOCH 4 ...
-2016-12-22 10:11:16,763 - Validation loss = 3.749
-2016-12-22 10:11:16,763 - Validation accuracy = 0.058
-2016-12-22 10:11:54,226 - EPOCH 5 ...
-2016-12-22 10:11:54,226 - Validation loss = 3.683
-2016-12-22 10:11:54,226 - Validation accuracy = 0.058
-2016-12-22 10:12:31,134 - EPOCH 6 ...
-2016-12-22 10:12:31,134 - Validation loss = 3.647
-2016-12-22 10:12:31,134 - Validation accuracy = 0.058
-2016-12-22 10:13:07,885 - EPOCH 7 ...
-2016-12-22 10:13:07,885 - Validation loss = 3.631
-2016-12-22 10:13:07,886 - Validation accuracy = 0.059
-2016-12-22 10:13:39,800 - EPOCH 8 ...
-2016-12-22 10:13:39,800 - Validation loss = 3.618
-2016-12-22 10:13:39,800 - Validation accuracy = 0.059
-2016-12-22 10:14:16,385 - EPOCH 9 ...
-2016-12-22 10:14:16,385 - Validation loss = 3.611
-2016-12-22 10:14:16,385 - Validation accuracy = 0.059
-2016-12-22 10:14:52,117 - EPOCH 10 ...
-2016-12-22 10:14:52,117 - Validation loss = 3.621
-2016-12-22 10:14:52,117 - Validation accuracy = 0.059
-2016-12-22 10:14:59,254 - Test loss = 3.495
-2016-12-22 10:14:59,255 - Test accuracy = 0.061
-"""
