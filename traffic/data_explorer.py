@@ -49,7 +49,7 @@ class DataExplorer(object):
     def _sample(feature, labels, data_slice, sign_names):
         images = feature[data_slice]
         labels = labels[data_slice]
-        image_count = images.shape[0]
+        image_count = len(images)
         fig, axes = plt.subplots(image_count, 1, figsize=(3, 2 * image_count))
         pbar = tqdm(range(image_count), desc="showing image ", total=image_count)
         for index in pbar:
@@ -75,6 +75,10 @@ class DataExplorer(object):
         return distribution
 
     def training_data_distribution(self):
+        """
+        training data distribution
+        :return: the distribution, groupby("signName").count()
+        """
         return self._data_distribution(self.train_labels, self.sign_names)
 
     def validation_data_distribution(self):
@@ -82,6 +86,26 @@ class DataExplorer(object):
 
     def testing_data_distribution(self):
         return self._data_distribution(self.test_labels, self.sign_names)
+
+    @staticmethod
+    def highest_sign_names_count(distribution):
+        """
+
+        :param distribution: the distribution to exam
+        :return: sign_name, count
+        """
+        idx = distribution.idxmax(axis=0)
+        return distribution.loc[idx].iloc[0].name, distribution.loc[idx].iloc[0][0]
+
+    @staticmethod
+    def lowest_sign_names_count(distribution):
+        """
+
+        :param distribution: the distribution to exam
+        :return: sign_name, count
+        """
+        idx = distribution.idxmin(axis=0)
+        return distribution.loc[idx].iloc[0].name, distribution.loc[idx].iloc[0][0]
 
     def bar_chart_data_distribution(self, distribution, title):
         """
