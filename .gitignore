@@ -88,14 +88,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
-=======
-*.h5
-models
-*.swp
-*.p
-<<<<<<< fb68547348831088f33161d44c912163e09546c2
->>>>>>> working solutions
-=======
+
 /traffic/test_next_batch_with_generator/
 /traffic/test_data_generator_factory/
 /traffic/test_data_enhancement/
@@ -105,4 +98,3 @@ models
 __pycache__
 .idea
 /traffic/MNIST_data/
->>>>>>> modify the way how to compose data

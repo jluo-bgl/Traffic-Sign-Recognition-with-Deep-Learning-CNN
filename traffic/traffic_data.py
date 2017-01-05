@@ -1,7 +1,7 @@
 import numpy
 import pickle
 from tensorflow.python.framework import dtypes
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from enum import Enum
 import scipy.ndimage

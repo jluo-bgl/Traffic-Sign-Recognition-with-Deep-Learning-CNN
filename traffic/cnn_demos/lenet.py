@@ -24,7 +24,7 @@ logging.config.fileConfig('logging.conf')
 logging.info("Test")
 
 EPOCHS = 10
-BATCH_SIZE = 50
+BATCH_SIZE = 150
 
 
 # LeNet architecture:
@@ -41,7 +41,7 @@ def LeNet(x):
     x = tf.pad(x, [[0, 0], [2, 2], [2, 2], [0, 0]], mode="CONSTANT")
 
     # 28x28x6
-    conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 1, 6)))
+    conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 1, 6), stddev=0.1))
     conv1_b = tf.Variable(tf.zeros(6))
     conv1 = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID') + conv1_b
 
@@ -51,7 +51,7 @@ def LeNet(x):
     conv1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
 
     # 10x10x16
-    conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16)))
+    conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), stddev=0.1))
     conv2_b = tf.Variable(tf.zeros(16))
     conv2 = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID') + conv2_b
 
@@ -65,12 +65,12 @@ def LeNet(x):
     # (5 * 5 * 16, 120)
     fc1_shape = (fc1.get_shape().as_list()[-1], 120)
 
-    fc1_W = tf.Variable(tf.truncated_normal(shape=(fc1_shape)))
+    fc1_W = tf.Variable(tf.truncated_normal(shape=(fc1_shape), stddev=0.1))
     fc1_b = tf.Variable(tf.zeros(120))
     fc1 = tf.matmul(fc1, fc1_W) + fc1_b
     fc1 = tf.nn.relu(fc1)
 
-    fc2_W = tf.Variable(tf.truncated_normal(shape=(120, 10)))
+    fc2_W = tf.Variable(tf.truncated_normal(shape=(120, 10), stddev=0.1))
     fc2_b = tf.Variable(tf.zeros(10))
     return tf.matmul(fc1, fc2_W) + fc2_b
 
