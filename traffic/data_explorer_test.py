@@ -48,8 +48,7 @@ class TestDataExplorer(unittest.TestCase):
         self.y_test = test['labels']
         self.sign_names = SignNames("signnames.csv")
 
-        self.traffic_datasets = TrafficDataSets(real_data_provider_no_shuffer,
-                                                dtype=dtypes.uint8, grayscale=False, one_hot_encode=False)
+        self.traffic_datasets = TrafficDataSets(real_data_provider_no_shuffer, one_hot_encode=False)
         datasets = self.traffic_datasets
         self.explorer = DataExplorer(self.sign_names, datasets.train.images, datasets.train.labels,
                                 datasets.validation.images, datasets.validation.labels,

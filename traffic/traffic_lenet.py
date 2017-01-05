@@ -1,4 +1,3 @@
-import unittest
 import tensorflow as tf
 from tensorflow.contrib.layers import flatten
 from .traffic_data import TrafficDataSets
@@ -8,28 +7,28 @@ logging.config.fileConfig('logging.conf')
 
 class Lenet(object):
 
-    def __init__(self, traffic_dataset, name):
+    def __init__(self, traffic_dataset, name, epochs=100, batch_size=500):
         self.plotter = TrainingPlotter("Lenet " + name,
                                        './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str()),
                                        show_plot_window=False)
-        self.EPOCHS = 100
-        self.BATCH_SIZE = 500
-        self.LABEL_SIZE = TrafficDataSets.NUMBER_OF_CLASSES
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.label_size = TrafficDataSets.NUMBER_OF_CLASSES
 
         self.traffic_datas = traffic_dataset
+
+        logging.info("training data {}".format(len(traffic_dataset.train.images)))
 
         # consists of 32x32xcolor_channel
         color_channel = traffic_dataset.train.images.shape[3]
         self.x = tf.placeholder(tf.float32, (None, 32, 32, color_channel))
 
-        self.y = tf.placeholder(tf.float32, (None, self.LABEL_SIZE))
+        self.y = tf.placeholder(tf.float32, (None, self.label_size))
         self.fc2 = Lenet._LeNet(self, self.x, color_channel)
 
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.fc2, self.y))
         self.opt = tf.train.AdamOptimizer()
         self.train_op = self.opt.minimize(self.loss_op)
-        self.correct_prediction = tf.equal(tf.argmax(self.fc2, 1), tf.argmax(self.y, 1))
-        self.accuracy_op = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
     # LeNet architecture:
     # INPUT -> CONV -> ACT -> POOL -> CONV -> ACT -> POOL -> FLATTEN -> FC -> ACT -> FC
@@ -73,8 +72,8 @@ class Lenet(object):
         fc1 = tf.matmul(fc1, fc1_W) + fc1_b
         fc1 = tf.nn.relu(fc1)
 
-        fc2_W = tf.Variable(tf.truncated_normal(shape=(512, self.LABEL_SIZE)))
-        fc2_b = tf.Variable(tf.zeros(self.LABEL_SIZE))
+        fc2_W = tf.Variable(tf.truncated_normal(shape=(512, self.label_size)))
+        fc2_b = tf.Variable(tf.zeros(self.label_size))
         return tf.matmul(fc1, fc2_W) + fc2_b
 
     def eval_data(self, dataset):
@@ -88,14 +87,16 @@ class Lenet(object):
         # num_examples = 859 * 64 = 54976
         #
         # So in that case we go over 54976 examples instead of 55000.
-        steps_per_epoch = dataset.num_examples // self.BATCH_SIZE
-        num_examples = steps_per_epoch * self.BATCH_SIZE
-        dataset.reset
+        correct_prediction = tf.equal(tf.argmax(self.fc2, 1), tf.argmax(self.y, 1))
+        accuracy_op = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+        steps_per_epoch = dataset.num_examples // self.batch_size
+        num_examples = steps_per_epoch * self.batch_size
         total_acc, total_loss = 0, 0
         sess = tf.get_default_session()
         for step in range(steps_per_epoch):
-            batch_x, batch_y = dataset.next_batch()
-            loss, acc = sess.run([self.loss_op, self.accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y})
+            batch_x, batch_y = dataset.next_batch(self.batch_size)
+            loss, acc = sess.run([self.loss_op, accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y})
             total_acc += (acc * batch_x.shape[0])
             total_loss += (loss * batch_x.shape[0])
         return total_loss / num_examples, total_acc / num_examples
@@ -103,13 +104,12 @@ class Lenet(object):
     def train(self):
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
-            steps_per_epoch = self.traffic_datas.train.num_examples // self.BATCH_SIZE
+            steps_per_epoch = self.traffic_datas.train.num_examples // self.batch_size
 
             # Train model
-            for i in range(self.EPOCHS):
-                self.traffic_datas.train.reset
+            for i in range(self.epochs):
                 for step in range(steps_per_epoch):
-                    batch_x, batch_y = self.traffic_datas.train.next_batch()
+                    batch_x, batch_y = self.traffic_datas.train.next_batch(self.batch_size)
                     loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y})
                     self.plotter.add_loss_accuracy_to_plot(i, loss, None, None, None, redraw=False)
 
