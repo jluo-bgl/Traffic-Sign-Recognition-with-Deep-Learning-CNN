@@ -8,12 +8,50 @@ import scipy.ndimage
 import scipy.misc
 
 
-class TrafficDataProviderAutoSplitValidationData(object):
+class TrafficDataProvider(object):
+    """
+    provide data to neural network
+    """
+    def __init__(self,
+                 X_train_array, y_train_array, X_validation_array, y_validation_array, X_test_array, y_test_array):
+        self.X_train = X_train_array
+        self.X_validation = X_validation_array
+        self.y_train = y_train_array
+        self.y_validation = y_validation_array
+        self.X_test = X_test_array
+        self.y_test = y_test_array
+
+    def to_other_provider(self, X_train_overwrite=None, y_train_overwrite=None):
+        if X_train_overwrite is not None:
+            X_train = X_train_overwrite
+        else:
+            X_train = self.X_train
+        if y_train_overwrite is not None:
+            y_train = y_train_overwrite
+        else:
+            y_train = self.y_train
+        return TrafficDataProvider(X_train, y_train, self.X_validation, self.y_validation, self.X_test, self.y_test)
+
+    @classmethod
+    def from_other_provider(cls, data_provider):
+        return cls(data_provider.X_train, data_provider.y_train,
+                   data_provider.X_validation, data_provider.y_validation,
+                   data_provider.X_test, data_provider.y_test)
+
+
+class TrafficDataProviderAutoSplitValidationData(TrafficDataProvider):
     def __init__(self, X_train_array, y_train_array, X_test_array, y_test_array,
                  split_validation_from_train=False, validation_size=0.20):
-
-
-        X_train, X_validation, y_train, y_validation = None, None, None, None
+        """
+        Provide X_train and X_test, calculate validation set from X_train.
+        :param X_train_array:
+        :param y_train_array:
+        :param X_test_array:
+        :param y_test_array:
+        :param split_validation_from_train: if true will shuffle data and split validation based on ratio of
+        validation_size, otherwise simple copy 1 to 1000 images from X_train
+        :param validation_size: how much to split validation from training set.
+        """
         if split_validation_from_train:
             X_train, X_validation, y_train, y_validation = train_test_split(X_train_array, y_train_array,
                                                                             test_size=validation_size, random_state=42)
@@ -22,14 +60,7 @@ class TrafficDataProviderAutoSplitValidationData(object):
             X_validation = X_train_array[0:1000]
             y_validation = y_train_array[0:1000]
 
-        X_test, y_test = X_test_array, y_test_array
-
-        self.X_train = X_train
-        self.X_validation = X_validation
-        self.y_train = y_train
-        self.y_validation = y_validation
-        self.X_test = X_test
-        self.y_test = y_test
+        super().__init__(X_train, y_train, X_validation, y_validation, X_test_array, y_test_array)
 
 
 class TrafficDataRealFileProviderAutoSplitValidationData(TrafficDataProviderAutoSplitValidationData):

@@ -6,39 +6,59 @@ import tensorflow as tf
 from enum import Enum
 import scipy.ndimage
 import scipy.misc
+from .traffic_data import TrafficDataProvider
 
 
 """
     Normally you should enhance feature size first, then grayscale, then normalise
-    all public function here should follow
-    enhance(images, labels)
-        return images, labels (new generated)
 """
 
 
-def normalise_image(images, labels):
+def normalise_images(provider):
+    return apply_func_to_images(provider, _normalise_image)
+
+
+def normalise_image_zero_mean(provider):
+    return apply_func_to_images(provider, _normalise_image_zero_mean)
+
+
+def grayscale(provider):
+    return apply_func_to_images(provider, _image_grayscale)
+
+
+def apply_func_to_images(provider, func):
+    return TrafficDataProvider(
+        X_train_array=func(provider.X_train),
+        y_train_array=provider.y_train,
+        X_validation_array=func(provider.X_validation),
+        y_validation_array=provider.y_validation,
+        X_test_array=func(provider.X_test),
+        y_test_array=provider.y_test
+    )
+
+
+def _normalise_image(images):
     """
     normalise image to 0.0 to 1.0
     :param images:
-    :param labels:
     :return:
     """
     # Convert from [0, 255] -> [0.0, 1.0].
     images = images - 127
     images = numpy.multiply(images, 1.0 / 255.0)
-    return images, labels
+    return images
 
 
-def normalise_image_zero_mean(images, labels):
+def _normalise_image_zero_mean(images):
     images = images - 128
     images = images / 128
-    return images, labels
+    return images
 
 
-def image_grayscale(images, labels):
+def _image_grayscale(images):
     images = tf.image.rgb_to_grayscale(images)
     images = tf.Session().run(images)
-    return images, labels
+    return images
 
 
 def enhance_with_random_rotate(images, labels, ratio):

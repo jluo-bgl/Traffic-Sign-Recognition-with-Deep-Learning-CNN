@@ -179,5 +179,5 @@ class TestTrafficDataEnhancement(unittest.TestCase):
 
     def test_gray_scale_should_contains_one_chanel(self):
         images = real_data_provider_no_shuffer.X_test
-        grayscale_images, _ = image_grayscale(images, None)
+        grayscale_images, _ = _image_grayscale(images, None)
         self.assertEqual(grayscale_images.shape[3], 1)

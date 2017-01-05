@@ -5,7 +5,6 @@ from .traffic_lenet import Lenet
 from .traffic_data import TrafficDataSets
 from .traffic_data import DataSet
 from .traffic_data import DataSetWithGenerator
-from .traffic_data import TrafficDataRealFileProviderAutoSplitValidationData
 from .traffic_data import DataSetType
 from .traffic_test_data_provider import *
 from .traffic_data_enhance import *
@@ -26,6 +25,8 @@ class TestLenetBenchmark(unittest.TestCase):
         2017-01-05 11:33:29,352 - EPOCH 100 Validation loss = 4487.364 accuracy = 0.892
         2017-01-05 11:33:36,193 - Test loss = 17121.372 accuracy = 0.774
         """
+        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
         lenet = Lenet(TrafficDataSets(real_data_provider),
                       name="lenet_original_data",
                       epochs=100, batch_size=500)
@@ -39,21 +40,12 @@ class TestLenetBenchmark(unittest.TestCase):
         2016-12-28 11:33:03,870 - Test loss = 119.563
         2016-12-28 11:33:03,870 - Test accuracy = 0.751
         """
-        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(split_validation_from_train=True, validation_size=0.20)
-        _X_train, _y_train = normalise_image_zero_mean(
-            real_data_provider_no_shuffer.X_train,
-            real_data_provider_no_shuffer.y_train)
-
-        real_data_provider_enhanced_value = TrafficDataProviderAutoSplitValidationData(
-            _X_train,
-            _y_train,
-            real_data_provider_no_shuffer.X_test,
-            real_data_provider_no_shuffer.y_test,
-            split_validation_from_train=True
-        )
-        return real_data_provider_enhanced_value
+        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        real_data_provider = normalise_image_zero_mean(real_data_provider)
         lenet = Lenet(TrafficDataSets(real_data_provider),
-                      name="normal_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean")
+                      name="lenet_original_ZeroMean",
+                      epochs=100, batch_size=500)
         lenet.train()
 
     def test_lenet_normal_no_grayscale(self):
