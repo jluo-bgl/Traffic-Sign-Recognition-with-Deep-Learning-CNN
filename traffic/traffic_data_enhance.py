@@ -44,7 +44,7 @@ def _normalise_image(images):
     :return:
     """
     # Convert from [0, 255] -> [0.0, 1.0].
-    images = images - 127
+    images = images - 128
     images = numpy.multiply(images, 1.0 / 255.0)
     return images
 

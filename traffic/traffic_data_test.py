@@ -12,6 +12,9 @@ from .traffic_data_enhance import *
 from .traffic_data_enhance import _enhance_one_image_randomly
 from .traffic_data_enhance import _zoomin_image_randomly
 from .traffic_data_enhance import _enhance_one_image_with_random_funcs
+from .traffic_data_enhance import _image_grayscale
+from .traffic_data_enhance import _normalise_image_zero_mean
+from .traffic_data_enhance import _normalise_image
 from .data_explorer import TrainingPlotter
 from tensorflow.python.framework import dtypes
 import pickle
@@ -21,6 +24,20 @@ import numpy as np
 from .traffic_test_data_provider import real_data_provider
 from .traffic_test_data_provider import real_data_provider_no_shuffer
 from .traffic_test_data_provider import clear_subset_data_provider
+
+
+class TestTrafficDataProvider(unittest.TestCase):
+    def test_validation_split(self):
+        provider = TrafficDataRealFileProviderAutoSplitValidationData()
+        self.assertEqual(len(provider.X_train), 31367, "80% of training data")
+        self.assertEqual(len(provider.X_validation), 7842, "20% of validation data")
+        self.assertEqual(len(provider.X_test), 12630, "separated test data")
+
+        provider = TrafficDataRealFileProviderAutoSplitValidationData(split_validation_from_train=True,
+                                                                      validation_size=0.30)
+        self.assertEqual(len(provider.X_train), 27446, "70% of training data")
+        self.assertEqual(len(provider.X_validation), 11763, "30% of validation data")
+        self.assertEqual(len(provider.X_test), 12630, "separated test data")
 
 class TestTrafficDataSets(unittest.TestCase):
     def __init__(self, methodName='runTest'):
@@ -178,6 +195,31 @@ class TestTrafficDataEnhancement(unittest.TestCase):
         plt.savefig(test_image_folder + "/random_generator_infinite.png")
 
     def test_gray_scale_should_contains_one_chanel(self):
-        images = real_data_provider_no_shuffer.X_test
-        grayscale_images, _ = _image_grayscale(images, None)
+        images = np.array([[[[1, 1, 1], [255, 255, 255], [128, 128, 128]]]])
+        self.assertEqual(images.shape[3], 3)
+        grayscale_images = _image_grayscale(images)
+        numpy.testing.assert_allclose(grayscale_images, [[[[0], [254], [127]]]])
         self.assertEqual(grayscale_images.shape[3], 1)
+
+    def test_normalise_image_zero_mean_should_result_between_1_to_mins_1(self):
+        images = np.array([[1, 1, 1], [255, 255, 255], [128, 128, 128]])
+        result = _normalise_image_zero_mean(images)
+        print(result)
+        numpy.testing.assert_allclose(result, [[-0.99, -0.99, -0.99], [0.99, 0.99, 0.99], [0., 0., 0.]], rtol=0.09)
+
+        # Grayscale Image
+        images = np.array([[1], [255], [128]])
+        numpy.testing.assert_allclose(_normalise_image_zero_mean(images),
+                                      [[-0.99], [0.99], [0.]], rtol=0.09)
+
+    def test_normalise_image_should_result_between_dot5_to_mins_dot5(self):
+        images = np.array([[1, 1, 1], [255, 255, 255], [128, 128, 128]])
+        result = _normalise_image(images)
+        print(result)
+        numpy.testing.assert_allclose(result, [[-0.49, -0.49, -0.49], [0.49, 0.49, 0.49], [0., 0., 0.]], rtol=0.1)
+
+        # Grayscale Image
+        images = np.array([[1], [255], [128]])
+        numpy.testing.assert_allclose(_normalise_image(images),
+                                      [[-0.49], [0.49], [0.]], rtol=0.09)
+

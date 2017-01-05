@@ -24,9 +24,9 @@ class Lenet(object):
         self.x = tf.placeholder(tf.float32, (None, 32, 32, color_channel))
 
         self.y = tf.placeholder(tf.float32, (None, self.label_size))
-        self.fc2 = Lenet._LeNet(self, self.x, color_channel)
+        self.network = Lenet._LeNet(self, self.x, color_channel)
 
-        self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.fc2, self.y))
+        self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.network, self.y))
         self.opt = tf.train.AdamOptimizer()
         self.train_op = self.opt.minimize(self.loss_op)
 
@@ -87,7 +87,7 @@ class Lenet(object):
         # num_examples = 859 * 64 = 54976
         #
         # So in that case we go over 54976 examples instead of 55000.
-        correct_prediction = tf.equal(tf.argmax(self.fc2, 1), tf.argmax(self.y, 1))
+        correct_prediction = tf.equal(tf.argmax(self.network, 1), tf.argmax(self.y, 1))
         accuracy_op = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
         steps_per_epoch = dataset.num_examples // self.batch_size

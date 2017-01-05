@@ -21,9 +21,9 @@ def get_and_make_sure_folder_exists(folder_name):
 class TestLenetBenchmark(unittest.TestCase):
     def test_lenet_original_data(self):
         """
-        2017-01-05 11:32:56,256 - EPOCH 99 Validation loss = 4632.268 accuracy = 0.891
-        2017-01-05 11:33:29,352 - EPOCH 100 Validation loss = 4487.364 accuracy = 0.892
-        2017-01-05 11:33:36,193 - Test loss = 17121.372 accuracy = 0.774
+        2017-01-05 18:37:10,487 - EPOCH 99 Validation loss = 107.213 accuracy = 0.069
+        2017-01-05 18:37:38,945 - EPOCH 100 Validation loss = 94.099 accuracy = 0.065
+        2017-01-05 18:37:44,418 - Test loss = 547.546 accuracy = 0.064
         """
         real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
@@ -34,11 +34,9 @@ class TestLenetBenchmark(unittest.TestCase):
 
     def test_lenet_normal_zero_mean_no_grayscale(self):
         """
-        2016-12-28 11:32:58,681 - EPOCH 100 ...
-        2016-12-28 11:32:58,682 - Validation loss = 31.360
-        2016-12-28 11:32:58,682 - Validation accuracy = 0.880
-        2016-12-28 11:33:03,870 - Test loss = 119.563
-        2016-12-28 11:33:03,870 - Test accuracy = 0.751
+        2017-01-05 17:46:23,997 - EPOCH 99 Validation loss = 232.905 accuracy = 0.624
+        2017-01-05 17:46:56,777 - EPOCH 100 Validation loss = 229.350 accuracy = 0.628
+        2017-01-05 17:47:03,439 - Test loss = 455.007 accuracy = 0.485
         """
         real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
