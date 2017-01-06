@@ -35,6 +35,38 @@ class TestLenetBenchmark(unittest.TestCase):
                       )
         lenet.train()
 
+    def test_lenet_original_data_grayscale(self):
+        """
+        2017-01-06 22:28:20,266 - EPOCH 9 Validation loss = 0.218 accuracy = 0.960
+        2017-01-06 22:28:42,081 - EPOCH 10 Validation loss = 0.222 accuracy = 0.959
+        2017-01-06 22:28:45,901 - Test loss = 1.057 accuracy = 0.876
+        """
+        provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        provider = grayscale(provider)
+        lenet = Lenet(TrafficDataSets(provider),
+                      name="lenet_original_data",
+                      epochs=10, batch_size=128,
+                      variable_mean=0, variable_stddev=0.1
+                      )
+        lenet.train()
+
+    def test_lenet_original_data_grayscale_v2(self):
+        """
+        2017-01-06 22:28:20,266 - EPOCH 9 Validation loss = 0.218 accuracy = 0.960
+        2017-01-06 22:28:42,081 - EPOCH 10 Validation loss = 0.222 accuracy = 0.959
+        2017-01-06 22:28:45,901 - Test loss = 1.057 accuracy = 0.876
+        """
+        provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        provider = grayscale(provider)
+        lenet = LenetV2(TrafficDataSets(provider),
+                      name="lenet_original_data",
+                      epochs=10, batch_size=128,
+                      variable_mean=0, variable_stddev=0.1
+                      )
+        lenet.train()
+
     def test_lenet_original_data_batch_500(self):
         """
         2017-01-05 18:37:10,487 - EPOCH 99 Validation loss = 107.213 accuracy = 0.069
@@ -54,7 +86,7 @@ class TestLenetBenchmark(unittest.TestCase):
         """
         real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
-        lenet = LenetV2(TrafficDataSets(real_data_provider),
+        lenet = Lenet(TrafficDataSets(real_data_provider),
                       name="lenet_original_data",
                       epochs=10, batch_size=128)
         lenet.train()
@@ -68,7 +100,7 @@ class TestLenetBenchmark(unittest.TestCase):
         real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
         real_data_provider = normalise_image_zero_mean(real_data_provider)
-        lenet = LenetV2(TrafficDataSets(real_data_provider),
+        lenet = Lenet(TrafficDataSets(real_data_provider),
                       name="lenet_original_ZeroMean",
                       epochs=10, batch_size=128)
         lenet.train()
@@ -98,7 +130,7 @@ class TestLenetBenchmark(unittest.TestCase):
         images, labels = enhance_with_random_rotate(real_data_provider.X_train, real_data_provider.y_train, 2)
         provider = real_data_provider.to_other_provider(X_train_overwrite=images, y_train_overwrite=labels)
         provider = normalise_image_zero_mean(provider)
-        lenet = LenetV2(TrafficDataSets(provider),
+        lenet = Lenet(TrafficDataSets(provider),
                         name="normal_no_grayscale_ZeroMean_enhanced_rotate_2",
                         epochs=100, batch_size=500)
         lenet.train()
