@@ -46,6 +46,18 @@ class DataExplorer(object):
         self.validation_labels = validation_labels
 
     @staticmethod
+    def from_data_provider(sign_names, provider):
+        return DataExplorer(
+            sign_names = sign_names,
+            Train_Features = provider.X_train,
+            train_labels = provider.y_train,
+            Validation_Features = provider.X_validation,
+            validation_labels = provider.y_validation,
+            Test_Features = provider.X_test,
+            test_labels = provider.y_test
+        )
+
+    @staticmethod
     def _sample(feature, labels, data_slice, sign_names):
         images = feature[data_slice]
         labels = labels[data_slice]

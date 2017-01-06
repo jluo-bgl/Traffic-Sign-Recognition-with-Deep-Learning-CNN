@@ -132,14 +132,14 @@ class TestLenetBenchmark(unittest.TestCase):
         provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
 
-        #     images, labels = enhance_with_random_rotate(provider.X_train, provider.y_train, 2)
-        #     provider = provider.to_other_provider(X_train_overwrite=images, y_train_overwrite=labels)
+        images, labels = enhance_with_random_rotate(provider.X_train, provider.y_train, 2)
+        provider = provider.to_other_provider(X_train_overwrite=images, y_train_overwrite=labels)
         #     provider = grayscale(provider)
         #     provider = normalise_image_zero_mean(provider)
         provider = normalise_image_unit_variance(provider)
         lenet = LenetV5(TrafficDataSets(provider),
                         name="lenet_original_data",
-                        epochs=40, batch_size=128,
+                        epochs=10, batch_size=128,
                         variable_mean=0, variable_stddev=0.1, learning_rate=0.001,
                         drop_out=0.5
                         )

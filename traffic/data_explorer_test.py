@@ -104,6 +104,18 @@ class TestDataExplorer(unittest.TestCase):
         highest = self.explorer.lowest_sign_names_count(distribution)
         self.assertTupleEqual(highest, ('Dangerous curve to the left', 210))
 
+    def test_from_data_provider(self):
+        explorer = DataExplorer.from_data_provider(self.sign_names, real_data_provider_no_shuffer)
+        explorer.bar_chart_data_distribution(explorer.training_data_distribution(),
+                                             "Training Data Distribution")\
+            .savefig("./explorer/real_training_data_distribution.png")
+        explorer.bar_chart_data_distribution(explorer.validation_data_distribution(),
+                                             "Validation Data Distribution") \
+            .savefig("./explorer/real_validation_data_distribution.png")
+        explorer.bar_chart_data_distribution(explorer.testing_data_distribution(),
+                                             "Testing Data Distribution") \
+            .savefig("./explorer/real_testing_data_distribution.png")
+
 
 class TestTrainingPlotter(unittest.TestCase):
     def test_plot_confusion_matrix_text(self):
