@@ -5,6 +5,7 @@ from .traffic_lenet import Lenet
 from .traffic_lenet_v2 import LenetV2
 from .traffic_lenet_v3 import LenetV3
 from .traffic_lenet_v4 import LenetV4
+from .traffic_lenet_v5 import LenetV5
 from .traffic_data import TrafficDataSets
 from .traffic_data import DataSet
 from .traffic_data import DataSetWithGenerator
@@ -95,6 +96,22 @@ class TestLenetBenchmark(unittest.TestCase):
             split_validation_from_train=True, validation_size=0.20)
         provider = grayscale(provider)
         lenet = LenetV4(TrafficDataSets(provider),
+                        name="lenet_original_data",
+                        epochs=10, batch_size=128,
+                        variable_mean=0, variable_stddev=0.1
+                        )
+        lenet.train()
+
+    def test_lenet_original_data_grayscale_v5(self):
+        """
+        2017-01-06 22:28:20,266 - EPOCH 9 Validation loss = 0.218 accuracy = 0.960
+        2017-01-06 22:28:42,081 - EPOCH 10 Validation loss = 0.222 accuracy = 0.959
+        2017-01-06 22:28:45,901 - Test loss = 1.057 accuracy = 0.876
+        """
+        provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        provider = grayscale(provider)
+        lenet = LenetV5(TrafficDataSets(provider),
                         name="lenet_original_data",
                         epochs=10, batch_size=128,
                         variable_mean=0, variable_stddev=0.1
