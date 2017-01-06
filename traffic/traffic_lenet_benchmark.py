@@ -34,7 +34,8 @@ class TestLenetBenchmark(unittest.TestCase):
         lenet = Lenet(TrafficDataSets(real_data_provider),
                       name="lenet_original_data",
                       epochs=10, batch_size=128,
-                      variable_mean=0, variable_stddev=0.1
+                      variable_mean=0, variable_stddev=0.1,
+                      drop_out=1
                       )
         lenet.train()
 

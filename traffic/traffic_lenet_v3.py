@@ -56,6 +56,7 @@ class LenetV3(Lenet):
 
         # SOLUTION: Activation.
         fc2 = tf.nn.relu(fc2)
+        fc2 = tf.nn.dropout(fc2, self.keep_prob)
 
         # SOLUTION: Layer 5: Fully Connected. Input = 84. Output = 10.
         fc3_W = tf.Variable(tf.truncated_normal(shape=(130, 43), mean=mu, stddev=sigma))

@@ -8,7 +8,7 @@ logging.config.fileConfig('logging.conf')
 class Lenet(object):
 
     def __init__(self, traffic_dataset, name, epochs=100, batch_size=500,
-                 variable_mean=0., variable_stddev=1., learning_rate=0.001):
+                 variable_mean=0., variable_stddev=1., learning_rate=0.001, drop_out=0.5):
         self.plotter = TrainingPlotter("Lenet " + name,
                                        './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str()),
                                        show_plot_window=False)
@@ -28,6 +28,8 @@ class Lenet(object):
         self.x = tf.placeholder(tf.float32, (None, 32, 32, color_channel))
 
         self.y = tf.placeholder(tf.float32, (None, self.label_size))
+        self.keep_prob = tf.placeholder(tf.float32)
+        self.drop_out = drop_out
         self.network = Lenet._LeNet(self, self.x, color_channel, variable_mean, variable_stddev)
 
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.network, self.y))
@@ -83,6 +85,8 @@ class Lenet(object):
         # SOLUTION: Activation.
         fc2 = tf.nn.relu(fc2)
 
+        fc2 = tf.nn.dropout(fc2, self.keep_prob)
+
         # SOLUTION: Layer 5: Fully Connected. Input = 84. Output = 10.
         fc3_W = tf.Variable(tf.truncated_normal(shape=(84, 43), mean=mu, stddev=sigma))
         fc3_b = tf.Variable(tf.zeros(43))
@@ -110,7 +114,8 @@ class Lenet(object):
         sess = tf.get_default_session()
         for step in range(steps_per_epoch):
             batch_x, batch_y = dataset.next_batch(self.batch_size)
-            loss, acc = sess.run([self.loss_op, accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y})
+            loss, acc = sess.run([self.loss_op, accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y,
+                                                                         self.keep_prob: 1.0})
             total_acc += (acc * batch_x.shape[0])
             total_loss += (loss * batch_x.shape[0])
         return total_loss / num_examples, total_acc / num_examples
@@ -124,7 +129,7 @@ class Lenet(object):
             for i in range(self.epochs):
                 for step in range(steps_per_epoch):
                     batch_x, batch_y = self.traffic_datas.train.next_batch(self.batch_size)
-                    loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y})
+                    loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y, self.keep_prob: self.drop_out})
                     self.plotter.add_loss_accuracy_to_plot(i, loss, None, None, None, redraw=False)
 
                 val_loss, val_acc = self.eval_data(self.traffic_datas.validation)
