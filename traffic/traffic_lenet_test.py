@@ -22,3 +22,58 @@ class TestLenet(unittest.TestCase):
         result = tf.argmax(one_host, 1).eval(session=tf.Session())
         numpy.testing.assert_allclose(result, [1, 1, 0], err_msg="return the index of the max value in a tensor")
 
+    def test_truncated_normal(self):
+        normal = tf.truncated_normal(shape=(200, 300), mean=1, stddev=1).eval(session=tf.Session())
+        numpy.testing.assert_allclose([numpy.sum(normal) / (200 * 300)], [1], rtol=0.1)
+        print(numpy.min(normal))
+        print(numpy.max(normal))
+        print(normal)
+        normal = tf.truncated_normal(shape=(2, 3), mean=0, stddev=0.1).eval(session=tf.Session())
+        print(normal)
+        normal = tf.truncated_normal(shape=(2, 3), mean=0, stddev=0.5).eval(session=tf.Session())
+        print(numpy.sum(normal))
+        print(normal)
+        normal = tf.truncated_normal(shape=(2, 3), mean=0, stddev=0.).eval(session=tf.Session())
+        print(normal)
+
+    def test_saver(self):
+        old_weights, old_bias, new_weights, new_bias = None, None, None, None
+        save_file = 'test_data/model.ckpt'
+        weights = tf.Variable(tf.truncated_normal([2, 3]))
+        bias = tf.Variable(tf.truncated_normal([3]))
+        print('Save Weights: {}'.format(weights.name))
+        print('Save Bias: {}'.format(bias.name))
+
+        saver = tf.train.Saver()
+        with tf.Session() as sess:
+            # Initialize all the Variables
+            sess.run(tf.initialize_all_variables())
+
+            # Show the values of weights and bias
+            old_weights = sess.run(weights)
+            old_bias = sess.run(bias)
+            print('Weights:', old_weights)
+            print('Bias:', old_bias)
+
+            # Save the model
+            saver.save(sess, save_file)
+            # Remove the previous weights and bias
+
+        tf.reset_default_graph()
+        weights = tf.Variable(tf.truncated_normal([2, 3]))
+        bias = tf.Variable(tf.truncated_normal([3]))
+        saver = tf.train.Saver()
+
+        with tf.Session() as sess:
+            # Load the weights and bias
+            saver.restore(sess, save_file)
+
+            # Show the values of weights and bias
+            new_weights = sess.run(weights)
+            new_bias = sess.run(bias)
+            print('Weights:', new_weights)
+            print('Bias:', new_bias)
+
+        numpy.testing.assert_allclose(old_weights, new_weights)
+        numpy.testing.assert_allclose(old_bias, new_bias)
+

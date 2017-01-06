@@ -5,7 +5,7 @@ from .data_explorer import TrainingPlotter
 import logging.config
 logging.config.fileConfig('logging.conf')
 
-class Lenet(object):
+class LenetV2(object):
 
     def __init__(self, traffic_dataset, name, epochs=100, batch_size=500):
         self.plotter = TrainingPlotter("Lenet " + name,
@@ -24,7 +24,7 @@ class Lenet(object):
         self.x = tf.placeholder(tf.float32, (None, 32, 32, color_channel))
 
         self.y = tf.placeholder(tf.float32, (None, self.label_size))
-        self.network = Lenet._LeNet(self, self.x, color_channel)
+        self.network = LenetV2._LeNet(self, self.x, color_channel)
 
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.network, self.y))
         self.opt = tf.train.AdamOptimizer()
@@ -34,47 +34,57 @@ class Lenet(object):
     # INPUT -> CONV -> ACT -> POOL -> CONV -> ACT -> POOL -> FLATTEN -> FC -> ACT -> FC
     # create the LeNet and return the result of the last fully connected layer.
     def _LeNet(self, x, color_channel):
-        # x is 32, 32, 3
-        # Reshape from 2D to 4D. This prepares the data for
-        # convolutional and pooling layers.
-        # x = tf.reshape(x, (-1, 32, 32, 3))
-        # Pad 0s to 32x32. Centers the digit further.
-        # Add 2 rows/columns on each side for height and width dimensions.
-        # x = tf.pad(x, [[0, 0], [2, 2], [2, 2], [0, 0]], mode="CONSTANT")
+        # Hyperparameters
+        mu = 0
+        sigma = 0.1
 
-        # 28x28x6
-        conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, color_channel, 6)))
+        # SOLUTION: Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
+        conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, color_channel, 6), mean=mu, stddev=sigma))
         conv1_b = tf.Variable(tf.zeros(6))
         conv1 = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID') + conv1_b
 
+        # SOLUTION: Activation.
         conv1 = tf.nn.relu(conv1)
 
-        # 14x14x6
+        # SOLUTION: Pooling. Input = 28x28x6. Output = 14x14x6.
         conv1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
 
-        # 10x10x16
-        conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16)))
+        # SOLUTION: Layer 2: Convolutional. Output = 10x10x16.
+        conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), mean=mu, stddev=sigma))
         conv2_b = tf.Variable(tf.zeros(16))
         conv2 = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID') + conv2_b
 
+        # SOLUTION: Activation.
         conv2 = tf.nn.relu(conv2)
 
-        # 5x5x16
+        # SOLUTION: Pooling. Input = 10x10x16. Output = 5x5x16.
         conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
 
-        # Flatten
-        fc1 = flatten(conv2)
-        # (5 * 5 * 16, 120)
-        fc1_shape = (fc1.get_shape().as_list()[-1], 512)
+        # SOLUTION: Flatten. Input = 5x5x16. Output = 400.
+        fc0 = flatten(conv2)
 
-        fc1_W = tf.Variable(tf.truncated_normal(shape=(fc1_shape)))
-        fc1_b = tf.Variable(tf.zeros(512))
-        fc1 = tf.matmul(fc1, fc1_W) + fc1_b
+        # SOLUTION: Layer 3: Fully Connected. Input = 400. Output = 120.
+        fc1_W = tf.Variable(tf.truncated_normal(shape=(400, 120), mean=mu, stddev=sigma))
+        fc1_b = tf.Variable(tf.zeros(120))
+        fc1 = tf.matmul(fc0, fc1_W) + fc1_b
+
+        # SOLUTION: Activation.
         fc1 = tf.nn.relu(fc1)
 
-        fc2_W = tf.Variable(tf.truncated_normal(shape=(512, self.label_size)))
-        fc2_b = tf.Variable(tf.zeros(self.label_size))
-        return tf.matmul(fc1, fc2_W) + fc2_b
+        # SOLUTION: Layer 4: Fully Connected. Input = 120. Output = 84.
+        fc2_W = tf.Variable(tf.truncated_normal(shape=(120, 84), mean=mu, stddev=sigma))
+        fc2_b = tf.Variable(tf.zeros(84))
+        fc2 = tf.matmul(fc1, fc2_W) + fc2_b
+
+        # SOLUTION: Activation.
+        fc2 = tf.nn.relu(fc2)
+
+        # SOLUTION: Layer 5: Fully Connected. Input = 84. Output = 10.
+        fc3_W = tf.Variable(tf.truncated_normal(shape=(84, 43), mean=mu, stddev=sigma))
+        fc3_b = tf.Variable(tf.zeros(43))
+        logits = tf.matmul(fc2, fc3_W) + fc3_b
+
+        return logits
 
     def eval_data(self, dataset):
         """

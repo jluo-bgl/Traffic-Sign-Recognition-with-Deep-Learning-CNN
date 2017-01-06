@@ -2,11 +2,12 @@ import unittest
 import logging.config
 from tensorflow.python.framework import dtypes
 from .traffic_lenet import Lenet
+from .traffic_lenet_v2 import LenetV2
 from .traffic_data import TrafficDataSets
 from .traffic_data import DataSet
 from .traffic_data import DataSetWithGenerator
 from .traffic_data import DataSetType
-from .traffic_test_data_provider import *
+from .traffic_test_data_provider import TrafficDataRealFileProviderAutoSplitValidationData
 from .traffic_data_enhance import *
 import os
 logging.config.fileConfig('logging.conf')
@@ -21,6 +22,21 @@ def get_and_make_sure_folder_exists(folder_name):
 class TestLenetBenchmark(unittest.TestCase):
     def test_lenet_original_data(self):
         """
+        2017-01-05 23:21:55,745 - EPOCH 9 Validation loss = 0.342 accuracy = 0.930
+        2017-01-05 23:22:29,297 - EPOCH 10 Validation loss = 0.363 accuracy = 0.930
+        2017-01-05 23:22:35,478 - Test loss = 1.426 accuracy = 0.829
+        """
+        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        lenet = Lenet(TrafficDataSets(real_data_provider),
+                      name="lenet_original_data",
+                      epochs=10, batch_size=128,
+                      variable_mean=0, variable_stddev=0.1
+                      )
+        lenet.train()
+
+    def test_lenet_original_data_batch_500(self):
+        """
         2017-01-05 18:37:10,487 - EPOCH 99 Validation loss = 107.213 accuracy = 0.069
         2017-01-05 18:37:38,945 - EPOCH 100 Validation loss = 94.099 accuracy = 0.065
         2017-01-05 18:37:44,418 - Test loss = 547.546 accuracy = 0.064
@@ -28,35 +44,33 @@ class TestLenetBenchmark(unittest.TestCase):
         real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
         lenet = Lenet(TrafficDataSets(real_data_provider),
+                      name="lenet_original_data_batch_500",
+                      epochs=10, batch_size=500)
+        lenet.train()
+
+    def test_lenet_v2_original_data(self):
+        """
+
+        """
+        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        lenet = LenetV2(TrafficDataSets(real_data_provider),
                       name="lenet_original_data",
-                      epochs=100, batch_size=500)
+                      epochs=10, batch_size=128)
         lenet.train()
 
     def test_lenet_normal_zero_mean_no_grayscale(self):
         """
-        2017-01-05 17:46:23,997 - EPOCH 99 Validation loss = 232.905 accuracy = 0.624
-        2017-01-05 17:46:56,777 - EPOCH 100 Validation loss = 229.350 accuracy = 0.628
-        2017-01-05 17:47:03,439 - Test loss = 455.007 accuracy = 0.485
+        2017-01-05 23:29:04,073 - EPOCH 9 Validation loss = 0.385 accuracy = 0.886
+        2017-01-05 23:29:41,245 - EPOCH 10 Validation loss = 0.358 accuracy = 0.897
+        2017-01-05 23:29:48,180 - Test loss = 1.290 accuracy = 0.739
         """
         real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
         real_data_provider = normalise_image_zero_mean(real_data_provider)
-        lenet = Lenet(TrafficDataSets(real_data_provider),
+        lenet = LenetV2(TrafficDataSets(real_data_provider),
                       name="lenet_original_ZeroMean",
-                      epochs=100, batch_size=500)
-        lenet.train()
-
-    def test_lenet_normal_no_grayscale(self):
-        """
-        2016-12-28 11:32:58,681 - EPOCH 100 ...
-        2016-12-28 11:32:58,682 - Validation loss = 31.360
-        2016-12-28 11:32:58,682 - Validation accuracy = 0.880
-        2016-12-28 11:33:03,870 - Test loss = 119.563
-        2016-12-28 11:33:03,870 - Test accuracy = 0.751
-        """
-
-        lenet = Lenet(TrafficDataSets(real_data_provider),
-                      name="normal_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean")
+                      epochs=10, batch_size=128)
         lenet.train()
 
     def test_lenet_normal_no_grayscale_enhanced_with_random_rotate_184700_samples(self):
@@ -68,29 +82,29 @@ class TestLenetBenchmark(unittest.TestCase):
         2017-01-04 13:24:32,252 - EPOCH 49 Validation loss = 2.133 accuracy = 0.972
         2017-01-04 13:27:30,197 - EPOCH 50 Validation loss = 1.647 accuracy = 0.975
         2017-01-04 13:27:37,678 - Test loss = 29.316 accuracy = 0.832
+
+        epochs:10, batch_size=128, stddev=0.1
+        2017-01-06 00:00:29,833 - EPOCH 9 Validation loss = 0.291 accuracy = 0.923
+        2017-01-06 00:03:30,843 - EPOCH 10 Validation loss = 0.252 accuracy = 0.935
+        2017-01-06 00:03:38,386 - Test loss = 1.427 accuracy = 0.775
+
+        epochs=100, batch_size=500
+        2017-01-06 13:02:52,200 - EPOCH 99 Validation loss = 0.399 accuracy = 0.956
+        2017-01-06 13:05:24,456 - EPOCH 100 Validation loss = 0.409 accuracy = 0.953
+        2017-01-06 13:05:31,330 - Test loss = 3.315 accuracy = 0.800
         """
-        lenet = Lenet(TrafficDataSets(real_data_provider_enhanced_with_random_rotate(2), dtype=dtypes.float32, grayscale=False,
-                                      training_dataset_factory=normal_dataset_factory,
-                                      test_dataset_factory=normal_dataset_factory),
-                      name="normal_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean_enhanced_data",
-                      epochs=50,
-                      batch_size=500)
+        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        images, labels = enhance_with_random_rotate(real_data_provider.X_train, real_data_provider.y_train, 2)
+        provider = real_data_provider.to_other_provider(X_train_overwrite=images, y_train_overwrite=labels)
+        provider = normalise_image_zero_mean(provider)
+        lenet = LenetV2(TrafficDataSets(provider),
+                        name="normal_no_grayscale_ZeroMean_enhanced_rotate_2",
+                        epochs=100, batch_size=500)
         lenet.train()
 
     def test_lenet_normal_no_grayscale_enhanced_data_with_random_zoomin(self):
         """
-        017-01-01 11:48:26,154 - training data 334113
-        2017-01-01 11:53:27,159 - EPOCH 1 Validation loss = 182.157 accuracy = 0.131
-        2017-01-01 11:58:17,694 - EPOCH 2 Validation loss = 5.446 accuracy = 0.035
-        2017-01-01 12:03:15,112 - EPOCH 3 Validation loss = 4.031 accuracy = 0.032
-        2017-01-01 12:08:11,213 - EPOCH 4 Validation loss = 3.860 accuracy = 0.031
-        2017-01-01 12:13:07,066 - EPOCH 5 Validation loss = 3.808 accuracy = 0.031
-        2017-01-01 12:18:04,764 - EPOCH 6 Validation loss = 3.785 accuracy = 0.031
-        2017-01-01 12:23:04,780 - EPOCH 7 Validation loss = 3.771 accuracy = 0.033
-        2017-01-01 12:27:56,787 - EPOCH 8 Validation loss = 3.763 accuracy = 0.033
-        2017-01-01 12:32:42,088 - EPOCH 9 Validation loss = 3.758 accuracy = 0.031
-        2017-01-01 12:37:56,701 - EPOCH 10 Validation loss = 3.755 accuracy = 0.033
-
         .....
         2017-01-01 23:32:29,869 - training data 184700
         .....
@@ -99,14 +113,18 @@ class TestLenetBenchmark(unittest.TestCase):
         2017-01-02 09:59:07,160 - EPOCH 100 Validation loss = 0.957 accuracy = 0.992
         2017-01-02 09:59:13,617 - Test loss = 36.678 accuracy = 0.883
         """
-        lenet = Lenet(TrafficDataSets(real_data_provider_enhanced_with_random_zoomin(2), dtype=dtypes.float32, grayscale=False,
-                                      training_dataset_factory=normal_dataset_factory,
-                                      test_dataset_factory=normal_dataset_factory),
-                      name="normal_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean_enhanced_data",
-                      epochs=50,
-                      batch_size=500
-        )
+        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        images, labels = enhance_with_random_zoomin(real_data_provider.X_train, real_data_provider.y_train, 2)
+        provider = real_data_provider.to_other_provider(X_train_overwrite=images, y_train_overwrite=labels)
+        provider = normalise_image_zero_mean(provider)
+        lenet = Lenet(TrafficDataSets(provider),
+                      name="normal_no_grayscale_ZeroMean_enhanced_zoomin_2",
+                      epochs=10, batch_size=128,
+                      variable_mean=0, variable_stddev=1.0
+                      )
         lenet.train()
+
 
     def test_lenet_normal_no_grayscale_enhanced_with_random_rotate_zoomin_184700_samples(self):
         """
@@ -161,15 +179,15 @@ class TestLenetBenchmark(unittest.TestCase):
         """
         # test_image_folder = get_and_make_sure_folder_exists("./lenet_keras_generator")
         test_image_folder = None
-        def keras_training_image_generator_dataset_factory(X, y, dtype, grayscale):
-            return DataSetWithGenerator(X, y, 500, DataSetType.Training, dtypes.uint8, grayscale=False,
+        def keras_training_image_generator_dataset_factory(X, y):
+            return DataSetWithGenerator(X, y, 500, DataSetType.Training,
                                         save_to_dir=test_image_folder, save_prefix="training_")
 
-        def keras_test_image_generator_dataset_factory(X, y, dtype, grayscale):
-            return DataSetWithGenerator(X, y, 500, DataSetType.TestAndValudation, dtypes.uint8, grayscale=False,
+        def keras_test_image_generator_dataset_factory(X, y):
+            return DataSetWithGenerator(X, y, 500, DataSetType.TestAndValudation,
                                         save_to_dir=test_image_folder, save_prefix="test_validation_")
 
-        lenet = Lenet(TrafficDataSets(real_data_provider, dtype=dtypes.uint8, grayscale=False,
+        lenet = Lenet(TrafficDataSets(real_data_provider,
                                       training_dataset_factory=keras_training_image_generator_dataset_factory,
                                       test_dataset_factory=keras_test_image_generator_dataset_factory),
                       name="keras_generator_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean")
