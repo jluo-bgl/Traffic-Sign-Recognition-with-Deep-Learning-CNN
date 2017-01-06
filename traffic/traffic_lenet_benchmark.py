@@ -121,6 +121,31 @@ class TestLenetBenchmark(unittest.TestCase):
                         )
         lenet.train()
 
+
+    def test_lenet_original_data_grayscale_v5_best(self):
+        """
+        2017-01-06 14:33:14,338 - EPOCH 39 Validation loss = 0.072 accuracy = 0.987
+        2017-01-06 14:33:17,597 - EPOCH 40 Validation loss = 0.071 accuracy = 0.988
+        2017-01-06 14:33:19,000 - Test loss = 0.483 accuracy = 0.935
+        :return:
+        """
+        provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+
+        #     images, labels = enhance_with_random_rotate(provider.X_train, provider.y_train, 2)
+        #     provider = provider.to_other_provider(X_train_overwrite=images, y_train_overwrite=labels)
+        #     provider = grayscale(provider)
+        #     provider = normalise_image_zero_mean(provider)
+        provider = normalise_image_unit_variance(provider)
+        lenet = LenetV5(TrafficDataSets(provider),
+                        name="lenet_original_data",
+                        epochs=40, batch_size=128,
+                        variable_mean=0, variable_stddev=0.1, learning_rate=0.001,
+                        drop_out=0.5
+                        )
+        lenet.train()
+
+
     def test_lenet_original_data_batch_500(self):
         """
         2017-01-05 18:37:10,487 - EPOCH 99 Validation loss = 107.213 accuracy = 0.069

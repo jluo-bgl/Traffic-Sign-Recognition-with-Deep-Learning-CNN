@@ -145,8 +145,6 @@ def _flatten(listoflists):
 
 _IMAGE_SCALES = numpy.arange(0.9, 1.1, 0.02)
 _IMAGE_CUT_RATIOS = numpy.arange(0.05, 0.2, 0.02)
-_IMAGE_ROTATE_ANGLES = numpy.arange(-20, 20, 1)
-
 
 def _zoomin_image_randomly(image):
     """
@@ -167,6 +165,9 @@ def _enhance_one_image_with_zoomin_randomly(image, how_many_to_generate):
         generated_images.append(generated_image)
 
     return generated_images
+
+
+_IMAGE_ROTATE_ANGLES = numpy.arange(-20, 20, 5)
 
 
 def _enhance_one_image_with_rotate_randomly(image, how_many_to_generate):
