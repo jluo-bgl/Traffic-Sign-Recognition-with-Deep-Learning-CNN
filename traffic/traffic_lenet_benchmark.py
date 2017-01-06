@@ -111,6 +111,8 @@ class TestLenetBenchmark(unittest.TestCase):
         provider = TrafficDataRealFileProviderAutoSplitValidationData(
             split_validation_from_train=True, validation_size=0.20)
         provider = grayscale(provider)
+        provider = normalise_image_unit_variance(provider)
+        # provider = normalise_image_zero_mean(provider)
         lenet = LenetV5(TrafficDataSets(provider),
                         name="lenet_original_data",
                         epochs=10, batch_size=128,

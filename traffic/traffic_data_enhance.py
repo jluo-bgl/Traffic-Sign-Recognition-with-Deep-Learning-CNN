@@ -22,6 +22,10 @@ def grayscale(provider):
     return apply_func_to_images(provider, _image_grayscale)
 
 
+def normalise_image_unit_variance(provider):
+    return apply_func_to_images(provider, _normalise_image_unit_variance)
+
+
 def apply_func_to_images(provider, func):
     return TrafficDataProvider(
         X_train_array=func(provider.X_train),
@@ -42,6 +46,16 @@ def _normalise_image(images):
     # Convert from [0, 255] -> [0.0, 1.0].
     images = images - 128
     images = numpy.multiply(images, 1.0 / 255.0)
+    return images
+
+
+def _normalise_image_unit_variance(images):
+    """
+    normalise image to 0.0 to 1.0
+    :param images:
+    :return:
+    """
+    images = (images - images.mean(axis=0)) / images.std(axis=0)
     return images
 
 
