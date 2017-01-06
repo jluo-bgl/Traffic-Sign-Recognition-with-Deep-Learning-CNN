@@ -8,6 +8,14 @@ Trying to have most of the code unit test covered, but this is my first python p
 
 Immutable / Compositable Overall Design
 
+git clone https://github.com/JamesLuoau/Traffic-Sign-Recognition-with-Deep-Learning-CNN.git
+cd Traffic-Sign-Recognition-with-Deep-Learning-CNN
+wget https://github.com/JamesLuoau/Traffic-Sign-Recognition-with-Deep-Learning-CNN/releases/download/0.1_GPU_Ready/test.p
+wget https://github.com/JamesLuoau/Traffic-Sign-Recognition-with-Deep-Learning-CNN/releases/download/0.1_GPU_Ready/train.p
+jupyter-notebook
+
+if you're in aws, make sure open 8888 port in your security group
+access public IP address  ip:8888
 
 ### Dependencies
 
