@@ -8,7 +8,7 @@ logging.config.fileConfig('logging.conf')
 class Lenet(object):
 
     def __init__(self, traffic_dataset, name, epochs=100, batch_size=500,
-                 variable_mean=0., variable_stddev=1.):
+                 variable_mean=0., variable_stddev=1., learning_rate=0.001):
         self.plotter = TrainingPlotter("Lenet " + name,
                                        './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str()),
                                        show_plot_window=False)
@@ -31,7 +31,7 @@ class Lenet(object):
         self.network = Lenet._LeNet(self, self.x, color_channel, variable_mean, variable_stddev)
 
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.network, self.y))
-        self.opt = tf.train.AdamOptimizer()
+        self.opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
         self.train_op = self.opt.minimize(self.loss_op)
 
     # LeNet architecture:
