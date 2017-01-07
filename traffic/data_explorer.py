@@ -76,6 +76,9 @@ class DataExplorer(object):
     def sample_training_data(self, data_slice):
         return self._sample(self.Train_Features, self.train_labels, data_slice, self.sign_names)
 
+    def sample_validation_data(self, data_slice):
+        return self._sample(self.Validation_Features, self.validation_labels, data_slice, self.sign_names)
+
     def sample_testing_data(self, data_slice):
         return self._sample(self.Test_Features, self.test_labels, data_slice, self.sign_names)
 
@@ -138,6 +141,29 @@ class DataExplorer(object):
         plt.gcf().tight_layout()
         return plt
 
+    @staticmethod
+    def _summary_array(data):
+        return """
+            examples:{}
+            shape:{}
+        """.format(len(data), data.shape)
+
+    def _all_labels(self):
+        labels = np.append(np.unique(self.train_labels), np.unique(self.validation_labels))
+        labels = np.unique(np.append(labels, np.unique(self.test_labels)))
+        return labels
+
+    def summary(self):
+        return """
+        training data set: {}
+        validation data set: {}
+        testing data set: {}
+        unique classes: {}
+        """.format(DataExplorer._summary_array(self.Train_Features),
+                   DataExplorer._summary_array(self.Validation_Features),
+                   DataExplorer._summary_array(self.Test_Features),
+                   len(self._all_labels()))
+
 
 class TrainingPlotter(object):
     def __init__(self, title, file_name, show_plot_window=False):
@@ -153,6 +179,7 @@ class TrainingPlotter(object):
     def add_loss_accuracy_to_plot(self, epoch, loss_train, acc_train, loss_val, acc_val, redraw=True):
         self.plotter.add_values(epoch, loss_train=loss_train, acc_train=acc_train, loss_val=loss_val, acc_val=acc_val,
                                 redraw=redraw)
+        return self.plotter.fig
 
     def safe_shut_down(self):
         self.plotter.block()

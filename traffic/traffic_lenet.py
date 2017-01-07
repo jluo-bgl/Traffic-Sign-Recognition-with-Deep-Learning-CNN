@@ -7,11 +7,15 @@ logging.config.fileConfig('logging.conf')
 
 class Lenet(object):
 
-    def __init__(self, traffic_dataset, name, epochs=100, batch_size=500,
-                 variable_mean=0., variable_stddev=1., learning_rate=0.001, drop_out=0.5):
-        self.plotter = TrainingPlotter("Lenet " + name,
-                                       './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str()),
-                                       show_plot_window=False)
+    def __init__(self, traffic_dataset, name, show_plot_window=False, epochs=100, batch_size=500,
+                 variable_mean=0., variable_stddev=1., learning_rate=0.001, drop_out_keep_prob=0.5):
+        self.file_name = './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str())
+        title = "{}_{}_epochs_{}_batch_size_{}_learning_rate_{}_keep_prob_{}_variable_stddev_{}"\
+            .format(self.__class__.__name__, name, epochs, batch_size,
+                    learning_rate, drop_out_keep_prob, variable_stddev)
+        self.plotter = TrainingPlotter(title,
+                                       self.file_name,
+                                       show_plot_window=show_plot_window)
         self.epochs = epochs
         self.batch_size = batch_size
         self.label_size = TrafficDataSets.NUMBER_OF_CLASSES
@@ -29,7 +33,7 @@ class Lenet(object):
 
         self.y = tf.placeholder(tf.float32, (None, self.label_size))
         self.keep_prob = tf.placeholder(tf.float32)
-        self.drop_out = drop_out
+        self.drop_out_keep_prob = drop_out_keep_prob
         self.network = Lenet._LeNet(self, self.x, color_channel, variable_mean, variable_stddev)
 
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.network, self.y))
@@ -129,7 +133,7 @@ class Lenet(object):
             for i in range(self.epochs):
                 for step in range(steps_per_epoch):
                     batch_x, batch_y = self.traffic_datas.train.next_batch(self.batch_size)
-                    loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y, self.keep_prob: self.drop_out})
+                    loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y, self.keep_prob: self.drop_out_keep_prob})
                     self.plotter.add_loss_accuracy_to_plot(i, loss, None, None, None, redraw=False)
 
                 val_loss, val_acc = self.eval_data(self.traffic_datas.validation)

@@ -116,6 +116,9 @@ class TestDataExplorer(unittest.TestCase):
                                              "Testing Data Distribution") \
             .savefig("./explorer/real_testing_data_distribution.png")
 
+    def test_summary(self):
+        print(self.explorer.summary())
+
 
 class TestTrainingPlotter(unittest.TestCase):
     def test_plot_confusion_matrix_text(self):
