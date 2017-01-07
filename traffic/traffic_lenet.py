@@ -39,6 +39,8 @@ class Lenet(object):
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.network, self.y))
         self.opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
         self.train_op = self.opt.minimize(self.loss_op)
+        self.correct_prediction = tf.equal(tf.argmax(self.network, 1), tf.argmax(self.y, 1))
+        self.accuracy_op = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
     # LeNet architecture:
     # INPUT -> CONV -> ACT -> POOL -> CONV -> ACT -> POOL -> FLATTEN -> FC -> ACT -> FC
@@ -109,8 +111,7 @@ class Lenet(object):
         # num_examples = 859 * 64 = 54976
         #
         # So in that case we go over 54976 examples instead of 55000.
-        correct_prediction = tf.equal(tf.argmax(self.network, 1), tf.argmax(self.y, 1))
-        accuracy_op = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
 
         steps_per_epoch = dataset.num_examples // self.batch_size
         num_examples = steps_per_epoch * self.batch_size
@@ -118,7 +119,7 @@ class Lenet(object):
         sess = tf.get_default_session()
         for step in range(steps_per_epoch):
             batch_x, batch_y = dataset.next_batch(self.batch_size)
-            loss, acc = sess.run([self.loss_op, accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y,
+            loss, acc = sess.run([self.loss_op, self.accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y,
                                                                          self.keep_prob: 1.0})
             total_acc += (acc * batch_x.shape[0])
             total_loss += (loss * batch_x.shape[0])
@@ -128,17 +129,25 @@ class Lenet(object):
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
             steps_per_epoch = self.traffic_datas.train.num_examples // self.batch_size
-
+            num_examples = steps_per_epoch * self.batch_size
             # Train model
             for i in range(self.epochs):
+                total_tran_loss = 0.0
+                total_tran_acc = 0.0
                 for step in range(steps_per_epoch):
                     batch_x, batch_y = self.traffic_datas.train.next_batch(self.batch_size)
-                    loss = sess.run(self.train_op, feed_dict={self.x: batch_x, self.y: batch_y, self.keep_prob: self.drop_out_keep_prob})
-                    self.plotter.add_loss_accuracy_to_plot(i, loss, None, None, None, redraw=False)
+                    _, tran_loss, tran_acc = sess.run(
+                        [self.train_op, self.loss_op, self.accuracy_op],
+                        feed_dict={self.x: batch_x, self.y: batch_y, self.keep_prob: self.drop_out_keep_prob})
+                    total_tran_loss += (tran_loss * batch_x.shape[0])
+                    total_tran_acc += (tran_acc * batch_x.shape[0])
 
+                total_tran_loss = total_tran_loss / num_examples
+                total_tran_acc = total_tran_acc / num_examples
                 val_loss, val_acc = self.eval_data(self.traffic_datas.validation)
-                logging.info("EPOCH {} Validation loss = {:.3f} accuracy = {:.3f}".format(i + 1, val_loss, val_acc))
-                self.plotter.add_loss_accuracy_to_plot(i, loss, None, val_loss, val_acc, redraw=True)
+                logging.info("EPOCH {} training loss = {:.3f} accuracy = {:.3f} Validation loss = {:.3f} accuracy = {:.3f}"
+                             .format(i + 1, total_tran_loss, total_tran_acc, val_loss, val_acc))
+                self.plotter.add_loss_accuracy_to_plot(i, total_tran_loss, total_tran_acc, val_loss, val_acc, redraw=True)
 
             # Evaluate on the test data
             test_loss, test_acc = self.eval_data(self.traffic_datas.test)

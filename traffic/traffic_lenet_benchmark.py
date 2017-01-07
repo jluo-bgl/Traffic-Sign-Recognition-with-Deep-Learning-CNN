@@ -33,9 +33,9 @@ class TestLenetBenchmark(unittest.TestCase):
             split_validation_from_train=True, validation_size=0.20)
         lenet = Lenet(TrafficDataSets(real_data_provider),
                       name="lenet_original_data",
-                      epochs=10, batch_size=128,
+                      epochs=5, batch_size=128,
                       variable_mean=0, variable_stddev=0.1,
-                      drop_out=1
+                      drop_out_keep_prob=1
                       )
         lenet.train()
 
