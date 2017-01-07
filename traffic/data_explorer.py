@@ -26,6 +26,9 @@ class SignNames(object):
         """
         return self.data_frame.loc[class_id].values[0]
 
+    def names(self):
+        return self.data_frame.values.reshape(-1)
+
 
 class DataExplorer(object):
     def __init__(self, sign_names, Train_Features, train_labels, Validation_Features, validation_labels, Test_Features, test_labels):
@@ -196,7 +199,7 @@ class TrainingPlotter(object):
         tick_marks = np.array(range(len(labels))) + 0.5
         np.set_printoptions(precision=2)
         cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        plt.figure(figsize=(10, 8), dpi=120)
+        plt.figure(figsize=(20, 16), dpi=120)
         ind_array = np.arange(len(labels))
         x, y = np.meshgrid(ind_array, ind_array)
         intFlag = 0

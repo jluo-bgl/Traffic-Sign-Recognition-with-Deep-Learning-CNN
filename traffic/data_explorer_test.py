@@ -26,6 +26,9 @@ class TestSignNames(unittest.TestCase):
     def test_sign_name_by_id(self):
         self.assertEqual(self.sign_names.sign_name_by_id(14), "Stop")
 
+    def test_names(self):
+        self.assertEqual(self.sign_names.names()[0], "Speed limit (20km/h)")
+        self.assertEqual(self.sign_names.names()[42], "End of no passing by vechiles over 3.5 metric tons")
 
 class TestDataExplorer(unittest.TestCase):
 
