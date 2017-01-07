@@ -14,8 +14,10 @@ class Lenet(object):
                  variable_mean=0., variable_stddev=1., learning_rate=0.001, drop_out_keep_prob=0.5):
         self.sign_names = sign_names
         self.file_name = './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str())
-        self.file_name_confusion_matrix = './model_comparison/Lenet_confusion_matrix_{}_{}.png'.format(name,
-                                                                                      TrainingPlotter.now_as_str())
+        self.file_name_confusion_matrix = './model_comparison/Lenet_confusion_matrix_{}_{}.png'\
+            .format(name, TrainingPlotter.now_as_str())
+        self.file_name_wrong_predicts = './model_comparison/Lenet_wrong_predicts_{}_{}.png'\
+            .format(name, TrainingPlotter.now_as_str())
         title = "{}_{}_epochs_{}_batch_size_{}_learning_rate_{}_keep_prob_{}_variable_stddev_{}"\
             .format(self.__class__.__name__, name, epochs, batch_size,
                     learning_rate, drop_out_keep_prob, variable_stddev)
@@ -124,6 +126,7 @@ class Lenet(object):
         num_examples = steps_per_epoch * self.batch_size
         total_acc, total_loss = 0, 0
         total_predict, total_actual = [], []
+        wrong_predict_images = []
         sess = tf.get_default_session()
         for step in range(steps_per_epoch):
             batch_x, batch_y = dataset.next_batch(self.batch_size)
@@ -135,7 +138,11 @@ class Lenet(object):
             total_loss += (loss * batch_x.shape[0])
             total_predict = np.append(total_predict, predict)
             total_actual = np.append(total_actual, actual)
-        return total_loss / num_examples, total_acc / num_examples, total_predict, total_actual
+            for index in range(len(predict)):
+                if predict[index] != actual[index]:
+                    wrong_predict_images.append(batch_x[index])
+
+        return total_loss / num_examples, total_acc / num_examples, total_predict, total_actual, wrong_predict_images
 
     def train(self):
         with tf.Session() as sess:
@@ -162,9 +169,10 @@ class Lenet(object):
                 self.plotter.add_loss_accuracy_to_plot(i, total_tran_loss, total_tran_acc, val_loss, val_acc, redraw=True)
 
             # Evaluate on the test data
-            test_loss, test_acc, total_predict, total_actual = self.test_data(self.traffic_datas.test)
+            test_loss, test_acc, total_predict, total_actual, wrong_predict_images = self.test_data(self.traffic_datas.test)
             logging.info("Test loss = {:.3f} accuracy = {:.3f}".format(test_loss, test_acc))
             self.plotter.plot_confusion_matrix(
                 total_actual, total_predict, self.sign_names.names()).savefig(self.file_name_confusion_matrix)
+            self.plotter.combine_images(wrong_predict_images, self.file_name_wrong_predicts)
 
         self.plotter.safe_shut_down()

@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from .laplotter import LossAccPlotter
 from datetime import datetime
+from PIL import Image
+import math
 
 # plt.style.use('fivethirtyeight')
 
@@ -231,3 +233,20 @@ class TrainingPlotter(object):
         plt.ylabel('Index of True Classes')
         plt.xlabel('Index of Predict Classes')
         return plt
+
+    @staticmethod
+    def combine_images(images, file_name, top_images=1500):
+        if len(images) > top_images:
+            images = images[0:top_images-1]
+        count = len(images)
+        max_images_pre_row = 50
+        width = max_images_pre_row * 32
+        heigh = math.ceil(count / max_images_pre_row) * 32
+
+        blank_image = Image.new("RGB", (width, heigh))
+        for index in range(count):
+            image = Image.fromarray(images[index])
+            column = index % max_images_pre_row
+            row = index // max_images_pre_row
+            blank_image.paste(image, (column * 32, row * 32))
+        blank_image.save(file_name)

@@ -147,3 +147,7 @@ class TestTrainingPlotter(unittest.TestCase):
             plotter.add_loss_accuracy_to_plot(epoch, loss_train, acc_train, loss_val, acc_val, redraw=True)
 
         plotter.safe_shut_down()
+
+    def test_combine_images(self):
+        TrainingPlotter.combine_images(real_data_provider_no_shuffer.X_test[1:10], "./explorer/combine_images_10.png")
+        TrainingPlotter.combine_images(real_data_provider_no_shuffer.X_test[0:43], "./explorer/combine_images_44.png")
