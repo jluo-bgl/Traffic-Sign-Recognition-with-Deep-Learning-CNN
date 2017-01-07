@@ -10,6 +10,10 @@ from .traffic_data import TrafficDataProvider
 """
 
 
+def normalise_image_positive(provider):
+    return apply_func_to_images(provider, _normalise_image_positive)
+
+
 def normalise_images(provider):
     return apply_func_to_images(provider, _normalise_image)
 
@@ -36,6 +40,15 @@ def apply_func_to_images(provider, func):
         y_test_array=provider.y_test
     )
 
+
+def _normalise_image_positive(images):
+    """
+    normalise image to 0.0 to 1.0
+    :param images:
+    :return:
+    """
+    images = numpy.multiply(images, 1.0 / 255.0)
+    return images
 
 def _normalise_image(images):
     """

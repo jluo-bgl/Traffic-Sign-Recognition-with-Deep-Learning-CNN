@@ -107,18 +107,6 @@ class Lenet(object):
         return logits
 
     def eval_data(self, dataset):
-        """
-        Given a dataset as input returns the loss and accuracy.
-        """
-        # If dataset.num_examples is not divisible by BATCH_SIZE
-        # the remainder will be discarded.
-        # Ex: If BATCH_SIZE is 64 and training set has 55000 examples
-        # steps_per_epoch = 55000 // 64 = 859
-        # num_examples = 859 * 64 = 54976
-        #
-        # So in that case we go over 54976 examples instead of 55000.
-
-
         steps_per_epoch = dataset.num_examples // self.batch_size
         num_examples = steps_per_epoch * self.batch_size
         total_acc, total_loss = 0, 0
@@ -132,18 +120,6 @@ class Lenet(object):
         return total_loss / num_examples, total_acc / num_examples
 
     def test_data(self, dataset):
-        """
-        Given a dataset as input returns the loss and accuracy.
-        """
-        # If dataset.num_examples is not divisible by BATCH_SIZE
-        # the remainder will be discarded.
-        # Ex: If BATCH_SIZE is 64 and training set has 55000 examples
-        # steps_per_epoch = 55000 // 64 = 859
-        # num_examples = 859 * 64 = 54976
-        #
-        # So in that case we go over 54976 examples instead of 55000.
-
-
         steps_per_epoch = dataset.num_examples // self.batch_size
         num_examples = steps_per_epoch * self.batch_size
         total_acc, total_loss = 0, 0
