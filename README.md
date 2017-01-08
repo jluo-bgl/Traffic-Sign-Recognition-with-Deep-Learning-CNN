@@ -17,6 +17,23 @@ jupyter-notebook
 if you're in aws, make sure open 8888 port in your security group
 access public IP address  ip:8888
 
+Precetage of valiation data?
+20 / 30 ?
+or 200 pre class?
+
+Grayscale or Not?
+
+Image normalise -1..1, or 0..1 or 0.1 to 1
+
+Variable Stddev, 0.1 or 1 or 2 or ...
+mean, 0 or ...
+
+batch size ?
+
+epoch?
+
+
+
 ### Dependencies
 
 This project requires **Python 3.5** and the following Python libraries installed:
