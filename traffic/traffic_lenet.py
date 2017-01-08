@@ -14,6 +14,7 @@ class Lenet(object):
                  variable_mean=0., variable_stddev=1., learning_rate=0.001, drop_out_keep_prob=0.5):
         self.sign_names = sign_names
         self.file_name = './model_comparison/Lenet_{}_{}.png'.format(name, TrainingPlotter.now_as_str())
+        self.file_name_model = './model_comparison/Lenet_{}_{}.model'.format(name, TrainingPlotter.now_as_str())
         self.file_name_confusion_matrix = './model_comparison/Lenet_confusion_matrix_{}_{}.png'\
             .format(name, TrainingPlotter.now_as_str())
         self.file_name_wrong_predicts = './model_comparison/Lenet_wrong_predicts_{}_{}.png'\
@@ -116,7 +117,8 @@ class Lenet(object):
         steps_per_epoch = dataset.num_examples // self.batch_size
         num_examples = steps_per_epoch * self.batch_size
         total_acc, total_loss = 0, 0
-        sess = tf.get_default_session()
+        sess = self.session
+        # tf.get_default_session()
         for step in range(steps_per_epoch):
             batch_x, batch_y = dataset.next_batch(self.batch_size)
             loss, acc = sess.run([self.loss_op, self.accuracy_op], feed_dict={self.x: batch_x, self.y: batch_y,
@@ -131,7 +133,8 @@ class Lenet(object):
         total_acc, total_loss = 0, 0
         total_predict, total_actual = [], []
         wrong_predict_images = []
-        sess = tf.get_default_session()
+        sess = self.session
+        # tf.get_default_session()
         for step in range(steps_per_epoch):
             batch_x, batch_y = dataset.next_batch(self.batch_size)
             loss, acc, predict, actual = sess.run(
@@ -149,7 +152,14 @@ class Lenet(object):
         return total_loss / num_examples, total_acc / num_examples, total_predict, total_actual, wrong_predict_images
 
     def train(self):
-        with tf.Session() as sess:
+        saver = tf.train.Saver()
+        if self.session is not None:
+            self.session.close()
+
+        self.session = tf.Session()
+        # with tf.Session() as sess:
+        sess = self.session
+        if sess is not None:
             self.session = sess
             sess.run(tf.initialize_all_variables())
             steps_per_epoch = self.traffic_datas.train.num_examples // self.batch_size
@@ -174,6 +184,9 @@ class Lenet(object):
                              .format(i + 1, total_tran_loss, total_tran_acc, val_loss, val_acc))
                 self.plotter.add_loss_accuracy_to_plot(i, total_tran_loss, total_tran_acc, val_loss, val_acc, redraw=True)
 
+            saver.save(sess, self.file_name_model)
+            logging.info("Model saved into {}".format(self.file_name_model))
+
             # Evaluate on the test data
             test_loss, test_acc, total_predict, total_actual, wrong_predict_images = self.test_data(self.traffic_datas.test)
             logging.info("Test loss = {:.3f} accuracy = {:.3f}".format(test_loss, test_acc))
@@ -182,3 +195,10 @@ class Lenet(object):
             self.plotter.combine_images(wrong_predict_images, self.file_name_wrong_predicts)
 
         self.plotter.safe_shut_down()
+
+    def predict_images(self, images):
+        saver = tf.train.Saver()
+        with tf.Session() as sess:
+            saver.restore(sess, tf.train.latest_checkpoint('.'))
+            return sess.run(self.prediction_softmax, feed_dict={self.x: images, self.keep_prob: 1.0})
+
