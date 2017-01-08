@@ -14,7 +14,8 @@ from .traffic_data_enhance import _zoomin_image_randomly
 from .traffic_data_enhance import _enhance_one_image_with_random_funcs
 from .traffic_data_enhance import _image_grayscale
 from .traffic_data_enhance import _normalise_image_zero_mean
-from .traffic_data_enhance import _normalise_image, _normalise_image_whitening
+from .traffic_data_enhance import _normalise_image, _normalise_image_whitening, \
+    _enhance_one_image_with_tensorflow_random_operations
 from .data_explorer import TrainingPlotter
 from tensorflow.python.framework import dtypes
 import pickle
@@ -231,3 +232,9 @@ class TestTrafficDataEnhancement(unittest.TestCase):
                                                  [1.22474492,  1.22474492,  1.22474492],
                                                  [0.,          0.,          0.]]]])
 
+    def test_enhance_one_image_with_tensorflow_random_operations(self):
+        image = real_data_provider_no_shuffer.X_train[0:1]
+        result = _enhance_one_image_with_tensorflow_random_operations(image[0], 30)
+        self.assertTrue(result.shape, (30, 32, 32, 3))
+        result = numpy.append(result, image, axis=0)
+        TrainingPlotter.combine_images(result, "./test_data_enhancement/random_generate_with_tensorflow.png")

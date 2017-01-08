@@ -64,9 +64,8 @@ class TrafficDataProviderAutoSplitValidationData(TrafficDataProvider):
 
 
 class TrafficDataRealFileProviderAutoSplitValidationData(TrafficDataProviderAutoSplitValidationData):
-    def __init__(self, split_validation_from_train=True, validation_size=0.20):
-        training_file = "train.p"
-        testing_file = "test.p"
+    def __init__(self, training_file="train.p", testing_file="test.p",
+                 split_validation_from_train=True, validation_size=0.20):
         with open(training_file, mode='rb') as f:
             train = pickle.load(f)
         with open(testing_file, mode='rb') as f:

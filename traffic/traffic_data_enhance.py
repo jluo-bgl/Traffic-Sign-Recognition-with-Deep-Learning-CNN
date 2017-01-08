@@ -94,6 +94,10 @@ def _image_grayscale(images):
     return images
 
 
+def enhance_with_brightness_contrast(images, labels, ratio):
+    return enhance_with_function(images, labels, ratio, _enhance_one_image_with_tensorflow_random_operations)
+
+
 def enhance_with_random_rotate(images, labels, ratio):
     return enhance_with_function(images, labels, ratio, _enhance_one_image_with_rotate_randomly)
 
@@ -202,6 +206,20 @@ def _enhance_one_image_with_rotate_randomly(image, how_many_to_generate):
                                  reshape=False))
 
     return generated_images
+
+
+def _enhance_one_image_with_tensorflow_random_operations(image, how_many_to_generate):
+    def process_stack():
+        distorted_image = image
+        # distorted_image = tf.random_crop(image, [32, 32, 3])
+        distorted_image = tf.image.random_brightness(distorted_image,
+                                                     max_delta=0.5)
+        distorted_image = tf.image.random_contrast(distorted_image,
+                                                   lower=0.2, upper=1.8)
+        return distorted_image
+
+    tensor = tf.map_fn(lambda index: process_stack(), numpy.array(list(range(how_many_to_generate))), dtype=dtypes.uint8)
+    return tf.Session().run(tensor)
 
 
 def _enhance_one_image_with_random_funcs(enhance_funcs):
