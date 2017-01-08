@@ -180,7 +180,7 @@ def _enhance_one_image_with_zoomin_randomly(image, how_many_to_generate):
     return generated_images
 
 
-_IMAGE_ROTATE_ANGLES = numpy.arange(-20, 20, 5)
+_IMAGE_ROTATE_ANGLES = numpy.arange(-20, 20, 3)
 
 
 def _enhance_one_image_with_rotate_randomly(image, how_many_to_generate):
