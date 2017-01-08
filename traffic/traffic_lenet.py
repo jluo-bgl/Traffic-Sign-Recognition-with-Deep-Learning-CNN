@@ -151,6 +151,7 @@ class Lenet(object):
             num_examples = steps_per_epoch * self.batch_size
             # Train model
             for i in range(self.epochs):
+                self.traffic_datas.train.shuffle()
                 total_tran_loss = 0.0
                 total_tran_acc = 0.0
                 for step in range(steps_per_epoch):

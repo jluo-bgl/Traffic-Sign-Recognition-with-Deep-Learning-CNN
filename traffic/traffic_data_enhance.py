@@ -4,6 +4,7 @@ import scipy.ndimage
 import scipy.misc
 from tensorflow.python.framework import dtypes
 from .traffic_data import TrafficDataProvider
+import math
 
 
 """
@@ -145,7 +146,9 @@ def enhance_with_function(images, labels, ratio, enhance_func):
 
     # One Class
     for i in range(len(inputs_per_class)):
-        input_ratio = (int(max_inputs / inputs_per_class[i])) * ratio
+        input_ratio = math.ceil((max_inputs * ratio - inputs_per_class[i]) / inputs_per_class[i])
+        print("generating class:{} with ratio:{}, max input:{}, current:{}".format(
+            i, input_ratio, max_inputs, inputs_per_class[i]))
 
         if input_ratio <= 1:
             continue

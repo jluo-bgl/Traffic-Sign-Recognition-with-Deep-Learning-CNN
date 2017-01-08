@@ -40,6 +40,17 @@ class TestTrafficDataProvider(unittest.TestCase):
         self.assertEqual(len(provider.X_validation), 11763, "30% of validation data")
         self.assertEqual(len(provider.X_test), 12630, "separated test data")
 
+    def test_save_load_file(self):
+        provider = real_data_provider
+        provider.save_to_file("./test_data/provider_save_file.p")
+        loaded_provider = TrafficDataProvider.load_from_file("./test_data/provider_save_file.p")
+        self.assertEqual(len(provider.X_train), len(loaded_provider.X_train))
+        self.assertEqual(len(provider.y_train), len(loaded_provider.y_train))
+        self.assertEqual(len(provider.X_validation), len(loaded_provider.X_validation))
+        self.assertEqual(len(provider.y_validation), len(loaded_provider.y_validation))
+        self.assertEqual(len(provider.X_test), len(loaded_provider.X_test))
+        self.assertEqual(len(provider.y_test), len(loaded_provider.y_test))
+
 class TestTrafficDataSets(unittest.TestCase):
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)

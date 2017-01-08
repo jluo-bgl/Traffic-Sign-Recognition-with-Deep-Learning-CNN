@@ -6,6 +6,7 @@ import tensorflow as tf
 from enum import Enum
 import scipy.ndimage
 import scipy.misc
+from sklearn.utils import shuffle
 
 
 class TrafficDataProvider(object):
@@ -31,6 +32,32 @@ class TrafficDataProvider(object):
         else:
             y_train = self.y_train
         return TrafficDataProvider(X_train, y_train, self.X_validation, self.y_validation, self.X_test, self.y_test)
+
+    def save_to_file(self, file_name):
+        data = {
+            "train_features": self.X_train,
+            "train_labels": self.y_train,
+            "validation_features": self.X_validation,
+            "validation_labels": self.y_validation,
+            "test_features": self.X_test,
+            "test_labels": self.y_test
+        }
+        with open(file_name, mode='wb') as f:
+            pickle.dump(data, f)
+
+    @staticmethod
+    def load_from_file(file_name):
+        with open(file_name, mode='rb') as f:
+            data = pickle.load(f)
+
+        return TrafficDataProvider(
+            X_train_array=data["train_features"],
+            y_train_array=data["train_labels"],
+            X_validation_array=data["validation_features"],
+            y_validation_array=data["validation_labels"],
+            X_test_array=data["test_features"],
+            y_test_array=data["test_labels"]
+        )
 
     @classmethod
     def from_other_provider(cls, data_provider):
@@ -130,6 +157,11 @@ class DataSet(object):
     @property
     def epochs_completed(self):
         return self._epochs_completed
+
+    def shuffle(self):
+        images, labels = shuffle(self._images, self._labels)
+        self._images = images
+        self._labels = labels
 
     @property
     def is_grayscale(self):
