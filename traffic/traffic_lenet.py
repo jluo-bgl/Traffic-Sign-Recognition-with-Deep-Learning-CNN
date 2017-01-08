@@ -35,6 +35,8 @@ class Lenet(object):
 
         logging.info("training data {}".format(len(traffic_dataset.train.images)))
 
+        self.session = None
+
         # consists of 32x32xcolor_channel
         color_channel = traffic_dataset.train.images.shape[3]
         self.x = tf.placeholder(tf.float32, (None, 32, 32, color_channel))
@@ -43,6 +45,8 @@ class Lenet(object):
         self.keep_prob = tf.placeholder(tf.float32)
         self.drop_out_keep_prob = drop_out_keep_prob
         self.network = Lenet._LeNet(self, self.x, color_channel, variable_mean, variable_stddev)
+
+        self.prediction_softmax = tf.nn.softmax(self.network)
 
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.network, self.y))
         self.opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
@@ -146,6 +150,7 @@ class Lenet(object):
 
     def train(self):
         with tf.Session() as sess:
+            self.session = sess
             sess.run(tf.initialize_all_variables())
             steps_per_epoch = self.traffic_datas.train.num_examples // self.batch_size
             num_examples = steps_per_epoch * self.batch_size
