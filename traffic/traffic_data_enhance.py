@@ -47,7 +47,7 @@ def apply_func_to_images(provider, func):
 
 
 def _normalise_image_whitening(images):
-    tensor = tf.map_fn(lambda image: tf.image.per_image_whitening(image), images, dtype=dtypes.float32)
+    tensor = tf.map_fn(lambda image: tf.image.per_image_standardization(image), images, dtype=dtypes.float32)
     return tf.Session().run(tensor)
 
 
