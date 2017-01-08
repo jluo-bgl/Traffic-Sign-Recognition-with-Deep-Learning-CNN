@@ -2,6 +2,7 @@ import numpy
 import tensorflow as tf
 import scipy.ndimage
 import scipy.misc
+from tensorflow.python.framework import dtypes
 from .traffic_data import TrafficDataProvider
 
 
@@ -30,6 +31,10 @@ def normalise_image_unit_variance(provider):
     return apply_func_to_images(provider, _normalise_image_unit_variance)
 
 
+def normalise_image_whitening(provider):
+    return apply_func_to_images(provider, _normalise_image_whitening)
+
+
 def apply_func_to_images(provider, func):
     return TrafficDataProvider(
         X_train_array=func(provider.X_train),
@@ -39,6 +44,11 @@ def apply_func_to_images(provider, func):
         X_test_array=func(provider.X_test),
         y_test_array=provider.y_test
     )
+
+
+def _normalise_image_whitening(images):
+    tensor = tf.map_fn(lambda image: tf.image.per_image_whitening(image), images, dtype=dtypes.float32)
+    return tf.Session().run(tensor)
 
 
 def _normalise_image_positive(images):

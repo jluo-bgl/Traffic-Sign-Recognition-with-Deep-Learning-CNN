@@ -14,7 +14,7 @@ from .traffic_data_enhance import _zoomin_image_randomly
 from .traffic_data_enhance import _enhance_one_image_with_random_funcs
 from .traffic_data_enhance import _image_grayscale
 from .traffic_data_enhance import _normalise_image_zero_mean
-from .traffic_data_enhance import _normalise_image
+from .traffic_data_enhance import _normalise_image, _normalise_image_whitening
 from .data_explorer import TrainingPlotter
 from tensorflow.python.framework import dtypes
 import pickle
@@ -222,4 +222,12 @@ class TestTrafficDataEnhancement(unittest.TestCase):
         images = np.array([[1], [255], [128]])
         numpy.testing.assert_allclose(_normalise_image(images),
                                       [[-0.49], [0.49], [0.]], rtol=0.09)
+
+    def test_normalise_image_whitening(self):
+        images = np.array([[[[1, 1, 1], [255, 255, 255], [128, 128, 128]]]])
+        result = _normalise_image_whitening(images)
+        print(result)
+        numpy.testing.assert_allclose(result, [[[[-1.22474492, -1.22474492, -1.22474492],
+                                                 [1.22474492,  1.22474492,  1.22474492],
+                                                 [0.,          0.,          0.]]]])
 
