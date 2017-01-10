@@ -221,7 +221,7 @@ class DataSetWithGenerator(DataSet):
             height_shift_range=0.1,
             featurewise_center=False,
             featurewise_std_normalization=False,
-            zca_whitening=True,
+            zca_whitening=False,
             shear_range=0.1,
             zoom_range=0.2,
             horizontal_flip=False,

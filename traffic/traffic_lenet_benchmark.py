@@ -326,7 +326,7 @@ class TestLenetBenchmark(unittest.TestCase):
         lenet = Lenet(TrafficDataSets(real_data_provider,
                                       training_dataset_factory=keras_training_image_generator_dataset_factory),
                       name="keras_generator_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean",
-                      epochs = 10, batch_size = 128,
+                      epochs = 40, batch_size = 128,
                       variable_mean = 0, variable_stddev = 0.1,
                       drop_out_keep_prob = 1,
                       learning_rate=0.001
