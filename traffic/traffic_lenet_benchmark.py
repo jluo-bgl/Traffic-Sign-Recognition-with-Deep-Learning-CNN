@@ -6,6 +6,9 @@ from .traffic_lenet_v2 import LenetV2
 from .traffic_lenet_v3 import LenetV3
 from .traffic_lenet_v4 import LenetV4
 from .traffic_lenet_v5 import LenetV5
+from .traffic_lenet_v6 import LenetV6Deep24x96
+from .traffic_lenet_v7 import LenetV7LessMaxPooling
+from .traffic_lenet_v8_108x200 import LenetV8Deep108x200
 from .traffic_data import TrafficDataSets
 from .traffic_net_inception import NetInception
 from .traffic_data import DataSet
@@ -34,7 +37,7 @@ class TestLenetBenchmark(unittest.TestCase):
             split_validation_from_train=True, validation_size=0.20)
         lenet = Lenet(TrafficDataSets(real_data_provider),
                       name="lenet_original_data",
-                      epochs=5, batch_size=128,
+                      epochs=1, batch_size=128,
                       variable_mean=0, variable_stddev=0.1,
                       drop_out_keep_prob=1
                       )
@@ -313,17 +316,19 @@ class TestLenetBenchmark(unittest.TestCase):
         couldn't make it work, accuracy always between 0.03 to 0.06
         """
         # test_image_folder = get_and_make_sure_folder_exists("./lenet_keras_generator")
+        real_data_provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
         test_image_folder = None
         def keras_training_image_generator_dataset_factory(X, y):
-            return DataSetWithGenerator(X, y, 500, DataSetType.Training,
+            return DataSetWithGenerator(X, y, DataSetType.Training,
                                         save_to_dir=test_image_folder, save_prefix="training_")
 
-        def keras_test_image_generator_dataset_factory(X, y):
-            return DataSetWithGenerator(X, y, 500, DataSetType.TestAndValudation,
-                                        save_to_dir=test_image_folder, save_prefix="test_validation_")
-
         lenet = Lenet(TrafficDataSets(real_data_provider,
-                                      training_dataset_factory=keras_training_image_generator_dataset_factory,
-                                      test_dataset_factory=keras_test_image_generator_dataset_factory),
-                      name="keras_generator_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean")
+                                      training_dataset_factory=keras_training_image_generator_dataset_factory),
+                      name="keras_generator_no_grayscale_Epoch_100_Batch_Size_500_ZeroMean",
+                      epochs = 10, batch_size = 128,
+                      variable_mean = 0, variable_stddev = 0.1,
+                      drop_out_keep_prob = 1,
+                      learning_rate=0.001
+        )
         lenet.train()
