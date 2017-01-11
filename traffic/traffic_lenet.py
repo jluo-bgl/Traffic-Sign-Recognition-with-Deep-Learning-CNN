@@ -4,8 +4,15 @@ from .traffic_data import TrafficDataSets
 from .data_explorer import TrainingPlotter
 from .data_explorer import SignNames
 import numpy as np
+from enum import Enum
 import logging.config
 logging.config.fileConfig('logging.conf')
+
+
+class DropOutPosition(Enum):
+    AfterFirstConv = 1
+    AfterSecondConv = 2
+    AfterAllFullConnectedLayers = 3
 
 class Lenet(object):
 

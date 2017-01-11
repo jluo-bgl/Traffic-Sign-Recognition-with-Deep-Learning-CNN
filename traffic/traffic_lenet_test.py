@@ -2,7 +2,7 @@ import unittest
 import numpy.testing
 import tensorflow as tf
 import logging.config
-from .traffic_lenet import Lenet
+from .traffic_lenet import Lenet, DropOutPosition
 from .traffic_data import TrafficDataSets
 from .traffic_test_data_provider import real_data_provider
 
@@ -76,4 +76,9 @@ class TestLenet(unittest.TestCase):
 
         numpy.testing.assert_allclose(old_weights, new_weights)
         numpy.testing.assert_allclose(old_bias, new_bias)
+
+    def test_in_operation_dropout(self):
+        positions = [DropOutPosition.AfterAllFullConnectedLayers, DropOutPosition.AfterFirstConv]
+        assert DropOutPosition.AfterAllFullConnectedLayers in positions
+        assert DropOutPosition.AfterSecondConv not in positions
 
