@@ -85,6 +85,9 @@ class Lenet(object):
         # SOLUTION: Pooling. Input = 10x10x16. Output = 5x5x16.
         conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
 
+
+        fc2 = tf.nn.dropout(conv2, self.keep_prob)
+
         # SOLUTION: Flatten. Input = 5x5x16. Output = 400.
         fc0 = flatten(conv2)
 
@@ -104,7 +107,7 @@ class Lenet(object):
         # SOLUTION: Activation.
         fc2 = tf.nn.relu(fc2)
 
-        fc2 = tf.nn.dropout(fc2, self.keep_prob)
+
 
         # SOLUTION: Layer 5: Fully Connected. Input = 84. Output = 10.
         fc3_W = tf.Variable(tf.truncated_normal(shape=(84, 43), mean=mu, stddev=sigma))
