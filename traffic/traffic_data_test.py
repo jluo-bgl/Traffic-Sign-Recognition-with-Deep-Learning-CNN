@@ -249,3 +249,9 @@ class TestTrafficDataEnhancement(unittest.TestCase):
         self.assertTrue(result.shape, (30, 32, 32, 3))
         result = numpy.append(result, image, axis=0)
         TrainingPlotter.combine_images(result, "./test_data_enhancement/random_generate_with_tensorflow.png")
+
+    def test_enhance_with_tensorflow_random_bulk(self):
+        original_images = real_data_provider_no_shuffer.X_train[0:2]
+        result_images, _ = enhance_with_tensorflow_brightness_contrast_bulk(original_images,
+                                                                         real_data_provider_no_shuffer.y_train[0:2], 3)
+        TrainingPlotter.combine_images(result_images, "./test_data_enhancement/random_generate_with_tensorflow_bulk.png")

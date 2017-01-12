@@ -59,6 +59,24 @@ class TestLenetBenchmark(unittest.TestCase):
                       )
         lenet.train()
 
+    def test_lenet_brightness_contrast_data(self):
+        """
+        2017-01-05 23:21:55,745 - EPOCH 9 Validation loss = 0.342 accuracy = 0.930
+        2017-01-05 23:22:29,297 - EPOCH 10 Validation loss = 0.363 accuracy = 0.930
+        2017-01-05 23:22:35,478 - Test loss = 1.426 accuracy = 0.829
+        """
+        provider = TrafficDataRealFileProviderAutoSplitValidationData(
+            split_validation_from_train=True, validation_size=0.20)
+        images, labels = enhance_with_tensorflow_brightness_contrast_bulk(provider.X_train, provider.y_train, 2)
+        provider = provider.to_other_provider(X_train_overwrite=images, y_train_overwrite=labels)
+        lenet = Lenet(TrafficDataSets(provider),
+                      name="lenet_original_data",
+                      epochs=3, batch_size=128,
+                      variable_mean=0, variable_stddev=0.1,
+                      drop_out_keep_prob=1
+                      )
+        lenet.train()
+
     def test_lenet_original_data_grayscale_v2(self):
         """
         2017-01-06 22:28:20,266 - EPOCH 9 Validation loss = 0.218 accuracy = 0.960

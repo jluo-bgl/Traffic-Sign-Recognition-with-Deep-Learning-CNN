@@ -96,7 +96,40 @@ def _image_grayscale(images):
 
 
 def enhance_with_brightness_contrast(images, labels, ratio):
+    """
+    Please Note, this method currently too slow
+    :param images:
+    :param labels:
+    :param ratio:
+    :return:
+    """
     return enhance_with_function(images, labels, ratio, _enhance_one_image_with_tensorflow_random_operations)
+
+
+def _enhance_images_with_tensorflow_random_operations(images):
+    def generator_one(image):
+        distorted_image = image
+        # distorted_image = tf.random_crop(image, [32, 32, 3])
+        distorted_image = tf.image.random_brightness(distorted_image,
+                                                     max_delta=0.5)
+        distorted_image = tf.image.random_contrast(distorted_image,
+                                                   lower=0.2, upper=1.8)
+        return distorted_image
+
+    tensor = tf.map_fn(
+        lambda image: generator_one(image),
+        images,
+        dtype=dtypes.uint8)
+    return tf.Session().run(tensor)
+
+
+def enhance_with_tensorflow_brightness_contrast_bulk(images, labels, ratio):
+    result = numpy.array(images)
+    result_lables = numpy.array(labels)
+    for index in range(ratio):
+        result = numpy.append(result, _enhance_images_with_tensorflow_random_operations(images), axis=0)
+        result_lables = numpy.append(result_lables, labels, axis=0)
+    return result, result_lables
 
 
 def enhance_with_random_rotate(images, labels, ratio):
